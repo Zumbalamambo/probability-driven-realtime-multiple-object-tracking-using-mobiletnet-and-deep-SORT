@@ -9,6 +9,7 @@ from .detector import Detector
 import configparser
 import cv2
 import numpy as np
+import time
 
 class Mobilenet_Ssd(Detector):
     def __init__(self, config_path):
@@ -37,7 +38,6 @@ class Mobilenet_Ssd(Detector):
         (h, w) = image_frame.shape[:2]
         detections_result = self._detect_from_image(cv2.resize(image_frame, (self.image_height, self.image_width)))
 
-        print(detections_result)
         for i in range(detections_result.shape[2]):
             confidence = detections_result[0, 0, i, 2]
 
@@ -63,7 +63,94 @@ class Mobilenet_Ssd(Detector):
         cv2.destroyAllWindows()
 
     def detect_video(self, video_path):
-        pass
+        cap = cv2.VideoCapture(video_path)
+        total_time = time.time()
+        counter = 0
+
+        while True:
+            start_time = time.time()
+            try:
+                ret, image_frame = cap.read()
+                (h, w) = image_frame.shape[:2]
+            except:
+                break
+            detections_result = self._detect_from_image(cv2.resize(image_frame, (self.image_height, self.image_width)))
+
+            for i in range(detections_result.shape[2]):
+                confidence = detections_result[0, 0, i, 2]
+
+                if confidence > self.confident_threshold:
+                    idx = int(detections_result[0, 0, i, 1])
+
+                    if(self.detect_classes[idx] in self.ignore_classes):
+                        continue
+                    else:
+                        bounding_box = detections_result[0, 0, i, 3:7] * np.array([w, h, w, h])
+                        (startX, startY, endX, endY) = bounding_box.astype("int")
+
+                        # draw the prediction on the frame
+                        label = "{}: {:.2f}%".format(self.detect_classes[idx], confidence * 100)
+                        cv2.rectangle(image_frame, (startX, startY), (endX, endY), (255, 0, 0), 2)
+                        y = startY - 15 if startY - 15 > 15 else startY + 15
+                        cv2.putText(image_frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255) , 2)
+
+            counter += 1
+            end_time = time.time()
+            cv2.putText(image_frame, 'FPS:' + str(round(1.0 / (end_time - start_time), 1)), (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0) , 2)
+
+            if(self.is_display):
+                cv2.imshow('image', image_frame)
+
+            # ESC to break
+            if cv2.waitKey(1) >= 0:
+                break
+
+        print('Average FPS:', round(counter / (time.time() - total_time), 1))
+        cap.release()
+        cv2.destroyAllWindows()
 
     def detect_webcam(self):
-        pass
+        cap = cv2.VideoCapture(0)
+
+        total_time = time.time()
+        counter = 0
+
+        while True:
+            start_time = time.time()
+            ret, image_frame = cap.read()
+            (h, w) = image_frame.shape[:2]
+            detections_result = self._detect_from_image(cv2.resize(image_frame, (self.image_height, self.image_width)))
+
+            for i in range(detections_result.shape[2]):
+                confidence = detections_result[0, 0, i, 2]
+
+                if confidence > self.confident_threshold:
+                    idx = int(detections_result[0, 0, i, 1])
+
+                    if(self.detect_classes[idx] in self.ignore_classes):
+                        continue
+                    else:
+                        bounding_box = detections_result[0, 0, i, 3:7] * np.array([w, h, w, h])
+                        (startX, startY, endX, endY) = bounding_box.astype("int")
+
+                        # draw the prediction on the frame
+                        label = "{}: {:.2f}%".format(self.detect_classes[idx], confidence * 100)
+                        cv2.rectangle(image_frame, (startX, startY), (endX, endY), (255, 0, 0), 2)
+                        y = startY - 15 if startY - 15 > 15 else startY + 15
+                        cv2.putText(image_frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255) , 2)
+
+            counter += 1
+            end_time = time.time()
+            cv2.putText(image_frame, 'FPS:' + str(round(1.0 / (end_time - start_time), 1)), (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0) , 2)
+
+            if(self.is_display):
+                cv2.imshow('image', image_frame)
+
+            # ESC to break
+            if cv2.waitKey(1) >= 0:
+                break
+
+        print('Average FPS:', round(counter / (time.time() - total_time), 1))
+
+        cap.release()
+        cv2.destroyAllWindows()
