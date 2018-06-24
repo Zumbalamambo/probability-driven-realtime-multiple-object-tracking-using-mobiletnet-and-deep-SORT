@@ -1,98 +1,265 @@
-# -*- coding: utf-8 -*-
-import numpy as np
-import cv2
+from __future__ import division, print_function, absolute_import
+
+import argparse
+import os
 import time
 
-class Detector(object):
-    def __init__(self, model_path='./_saved_models/MobileNetSSD_deploy.caffemodel',
-                 prototxt='./_saved_models/MobileNetSSD_deploy.prototxt.txt', conf_threshold=0.4):
+import cv2
+import numpy as np
 
-        self.det = {'model_path' : model_path,
-                    'prototxt_path' : prototxt,
-                    'conf_threshold' : conf_threshold
-        }
+from deep_sort.application_util import preprocessing
+from deep_sort.application_util import visualization
+from deep_sort.deep_sort import nn_matching
+from deep_sort.deep_sort.detection import Detection
+from deep_sort.deep_sort.tracker import Tracker
 
-        self.net = self._load_model(self.det['model_path'], self.det['prototxt_path'])
-        self.CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
-                        "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
-                        "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
-                        "sofa", "train", "tvmonitor"]
-        self.IGNORE = set(["background", "aeroplane", "bicycle", "bird", "boat",
-                           "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
-                           "dog", "horse", "motorbike", "pottedplant", "sheep",
-                           "sofa", "train", "tvmonitor"])
-        self.COLORS = np.random.uniform(0, 255, size=(len(self.CLASSES), 3))
+def gather_sequence_info(sequence_dir, detection_file):
+    """Gather sequence information, such as image filenames, detections,
+    groundtruth (if available).
 
-    def _load_model(self, model_path, prototxt_path):
-        net = cv2.dnn.readNetFromCaffe(prototxt_path, model_path)
-        return net
+    Parameters
+    ----------
+    sequence_dir : str
+        Path to the MOTChallenge sequence directory.
+    detection_file : str
+        Path to the detection file.
 
-    def detect_video(self, video_path=''):
-        video_type = 'video'
-        if(video_path == '' or video_path == 'camera'):
-            video_type = 'camera'
+    Returns
+    -------
+    Dict
+        A dictionary of the following sequence information:
 
-        if(video_type == 'camera'):
-            cap = cv2.VideoCapture(0)
-        else:
-            cap = cv2.VideoCapture(video_path)
+        * sequence_name: Name of the sequence
+        * image_filenames: A dictionary that maps frame indices to image
+          filenames.
+        * detections: A numpy array of detections in MOTChallenge format.
+        * groundtruth: A numpy array of ground truth in MOTChallenge format.
+        * image_size: Image size (height, width).
+        * min_frame_idx: Index of the first frame.
+        * max_frame_idx: Index of the last frame.
 
-        total_counter = 0
-        counter = 0
-        averate_start_time = time.time()
+    """
+    image_dir = os.path.join(sequence_dir, "img1")
+    image_filenames = {
+        int(os.path.splitext(f)[0]): os.path.join(image_dir, f)
+        for f in os.listdir(image_dir)}
+    groundtruth_file = os.path.join(sequence_dir, "gt/gt.txt")
+
+    detections = None
+    if detection_file is not None:
+        detections = np.load(detection_file)
+    groundtruth = None
+    if os.path.exists(groundtruth_file):
+        groundtruth = np.loadtxt(groundtruth_file, delimiter=',')
+
+    if len(image_filenames) > 0:
+        image = cv2.imread(next(iter(image_filenames.values())),
+                           cv2.IMREAD_GRAYSCALE)
+        image_size = image.shape
+    else:
+        image_size = None
+
+    if len(image_filenames) > 0:
+        min_frame_idx = min(image_filenames.keys())
+        max_frame_idx = max(image_filenames.keys())
+    else:
+        min_frame_idx = int(detections[:, 0].min())
+        max_frame_idx = int(detections[:, 0].max())
+
+    info_filename = os.path.join(sequence_dir, "seqinfo.ini")
+    if os.path.exists(info_filename):
+        with open(info_filename, "r") as f:
+            line_splits = [l.split('=') for l in f.read().splitlines()[1:]]
+            info_dict = dict(
+                s for s in line_splits if isinstance(s, list) and len(s) == 2)
+
+        update_ms = 1000 / int(info_dict["frameRate"])
+    else:
+        update_ms = None
+
+    feature_dim = detections.shape[1] - 10 if detections is not None else 0
+    seq_info = {
+        "sequence_name": os.path.basename(sequence_dir),
+        "image_filenames": image_filenames,
+        "detections": detections,
+        "groundtruth": groundtruth,
+        "image_size": image_size,
+        "min_frame_idx": min_frame_idx,
+        "max_frame_idx": max_frame_idx,
+        "feature_dim": feature_dim,
+        "update_ms": update_ms
+    }
+    return seq_info
+
+
+def create_detections(detection_mat, frame_idx, min_height=0):
+    """Create detections for given frame index from the raw detection matrix.
+
+    Parameters
+    ----------
+    detection_mat : ndarray
+        Matrix of detections. The first 10 columns of the detection matrix are
+        in the standard MOTChallenge detection format. In the remaining columns
+        store the feature vector associated with each detection.
+    frame_idx : int
+        The frame index.
+    min_height : Optional[int]
+        A minimum detection bounding box height. Detections that are smaller
+        than this value are disregarded.
+
+    Returns
+    -------
+    List[tracker.Detection]
+        Returns detection responses at given frame index.
+
+    """
+    frame_indices = detection_mat[:, 0].astype(np.int)
+    mask = frame_indices == frame_idx
+
+    detection_list = []
+    for row in detection_mat[mask]:
+        bbox, confidence, feature = row[2:6], row[6], row[10:]
+        if bbox[3] < min_height:
+            continue
+        detection_list.append(Detection(bbox, confidence, feature))
+    return detection_list
+
+def create_detection_from_mobilenet(frame_idx, min_height=0):
+    pass
+
+def run(sequence_dir, detection_file, output_file, min_confidence,
+        nms_max_overlap, min_detection_height, max_cosine_distance,
+        nn_budget, display):
+    """Run multi-target tracker on a particular sequence.
+
+    Parameters
+    ----------
+    sequence_dir : str
+        Path to the MOTChallenge sequence directory.
+    detection_file : str
+        Path to the detections file.
+    output_file : str
+        Path to the tracking output file. This file will contain the tracking
+        results on completion.
+    min_confidence : float
+        Detection confidence threshold. Disregard all detections that have
+        a confidence lower than this value.
+    nms_max_overlap: float
+        Maximum detection overlap (non-maxima suppression threshold).
+    min_detection_height : int
+        Detection height threshold. Disregard all detections that have
+        a height lower than this value.
+    max_cosine_distance : float
+        Gating threshold for cosine distance metric (object appearance).
+    nn_budget : Optional[int]
+        Maximum size of the appearance descriptor gallery. If None, no budget
+        is enforced.
+    display : bool
+        If True, show visualization of intermediate tracking results.
+
+    """
+    seq_info = gather_sequence_info(sequence_dir, detection_file)
+    metric = nn_matching.NearestNeighborDistanceMetric(
+        "cosine", max_cosine_distance, nn_budget)
+    tracker = Tracker(metric)
+    results = []
+
+    def frame_callback(vis, frame_idx):
         start_time = time.time()
-        fps = 0
-        while True:
+        print("Processing frame %05d" % frame_idx)
 
-            ret, frame = cap.read()
-            frame = cv2.resize(frame, (300,300))
+        # Load image and generate detections.
+        """
+        detections = create_detections(
+            seq_info["detections"], frame_idx, min_detection_height)
+        detections = [d for d in detections if d.confidence >= min_confidence]
 
-            (height, width ) = frame.shape[:2]
-            blob = cv2.dnn.blobFromImage(frame, 0.007843, (300, 300), (127.5, 127.5, 127.5), False)
+        # Run non-maxima suppression.
+        boxes = np.array([d.tlwh for d in detections])
+        scores = np.array([d.confidence for d in detections])
+        indices = preprocessing.non_max_suppression(
+            boxes, nms_max_overlap, scores)
+        detections = [detections[i] for i in indices]
+        """
 
-            self.net.setInput(blob)
-            detect_result = self.net.forward()
+        detections =
 
-            for i in range(detect_result.shape[2]):
-                conf = detect_result[0, 0, i, 2]
-                if(conf > self.det['conf_threshold']):
-                    idx = int(detect_result[0, 0, i, 1])
+        # Update tracker.
+        tracker.predict()
+        tracker.update(detections)
 
-                    if(self.CLASSES[idx] in self.IGNORE):
-                        continue
+        # Update visualization.
+        if display:
+            image = cv2.imread(
+                seq_info["image_filenames"][frame_idx], cv2.IMREAD_COLOR)
+            vis.set_image(image.copy())
+            vis.draw_detections(detections)
+            vis.draw_trackers(tracker.tracks)
+            vis.show_fps(0, 25, 'FPS: ' + str(round(1.0 / (time.time() - start_time), 1)))
 
-                    box = detect_result[0, 0, i, 3:7] * np.array([width, height, width, height])
-                    (startX, startY, endX, endY) = box.astype("int")
+        # Store results.
+        for track in tracker.tracks:
+            if not track.is_confirmed() or track.time_since_update > 1:
+                continue
+            bbox = track.to_tlwh()
+            results.append([
+                frame_idx, track.track_id, bbox[0], bbox[1], bbox[2], bbox[3]])
 
-                    # draw the prediction on the frame
-                    label = "{}: {:.2f}%".format(self.CLASSES[idx], conf * 100)
-                    cv2.rectangle(frame, (startX, startY), (endX, endY), self.COLORS[idx], 2)
-                    y = startY - 15 if startY - 15 > 15 else startY + 15
-                    cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.COLORS[idx], 2)
+    # Run tracker.
+    if display:
+        visualizer = visualization.Visualization(seq_info, update_ms=5)
+    else:
+        visualizer = visualization.NoVisualization(seq_info)
+    visualizer.run(frame_callback)
 
-            counter += 1
-            total_counter += 1
-
-            if(counter % 5 == 0):
-                fps = counter / (time.time() - start_time)
-                counter = 0
-                start_time = time.time()
-            cv2.putText(frame, str(round(fps, 1)), org=(0, 25), fontFace=cv2.FONT_HERSHEY_DUPLEX,
-                        fontScale=1, color=(255,0,0), thickness=2)
-
-            cv2.imshow('Frame', frame)
-
-            if cv2.waitKey(1) >= 0:  # Break with ESC
-                break
-
-        print('averate_FPS: ', total_counter / (time.time() - averate_start_time))
-        # do a bit of cleanup
-        cap.release()
-        cv2.destroyAllWindows()
+    # Store results.
+    f = open(output_file, 'w')
+    for row in results:
+        print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1' % (
+            row[0], row[1], row[2], row[3], row[4], row[5]),file=f)
 
 
-if __name__ == '__main__':
-   det = Detector()
-   #det.detect_video('_samples/MOT17-09-FRCNN.mp4')
-   #det.detect_video('_samples/motor_bike.mp4')
-   det.detect_video('camera')
+def parse_args():
+    """ Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(description="Deep SORT")
+    parser.add_argument(
+        "--sequence_dir", help="Path to MOTChallenge sequence directory",
+        default='./_samples/MOT17-09-FRCNN/',
+        required=False)
+    parser.add_argument(
+        "--detection_file", help="Path to custom detections.",
+        default='_saved_models/resources/detections/MOT17_train/MOT17-09-FRCNN.npy',
+        required=False)
+    parser.add_argument(
+        "--output_file", help="Path to the tracking output file. This file will"
+        " contain the tracking results on completion.",
+        default="./_output/output.txt")
+    parser.add_argument(
+        "--min_confidence", help="Detection confidence threshold. Disregard "
+        "all detections that have a confidence lower than this value.",
+        default=0.8, type=float)
+    parser.add_argument(
+        "--min_detection_height", help="Threshold on the detection bounding "
+        "box height. Detections with height smaller than this value are "
+        "disregarded", default=0, type=int)
+    parser.add_argument(
+        "--nms_max_overlap",  help="Non-maxima suppression threshold: Maximum "
+        "detection overlap.", default=1.0, type=float)
+    parser.add_argument(
+        "--max_cosine_distance", help="Gating threshold for cosine distance "
+        "metric (object appearance).", type=float, default=0.2)
+    parser.add_argument(
+        "--nn_budget", help="Maximum size of the appearance descriptors "
+        "gallery. If None, no budget is enforced.", type=int, default=None)
+    parser.add_argument(
+        "--display", help="Show intermediate tracking results",
+        default=True, type=bool)
+    return parser.parse_args()
+
+if __name__ == "__main__":
+    args = parse_args()
+    run(
+        args.sequence_dir, args.detection_file, args.output_file,
+        args.min_confidence, args.nms_max_overlap, args.min_detection_height,
+        args.max_cosine_distance, args.nn_budget, args.display)
