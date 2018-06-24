@@ -7,7 +7,7 @@ if __name__ == '__main__':
     #det.detect_image('./_samples/MOT17-09-FRCNN/img1/000001.jpg')
 
     # detect_video_test
-    #det.detect_video('./_samples/MOT17-09-FRCNN.mp4')
+    det.detect_video('./_samples/MOT17-09-FRCNN.mp4')
 
     # detect_webcam_test
-    det.detect_webcam()
+    #det.detect_webcam()
