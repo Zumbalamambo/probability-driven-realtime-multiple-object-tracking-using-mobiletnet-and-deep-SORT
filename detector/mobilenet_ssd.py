@@ -154,3 +154,66 @@ class Mobilenet_Ssd(Detector):
 
         cap.release()
         cv2.destroyAllWindows()
+
+    def detect_box_from_image(self, image_frame):
+        #(h, w) = image_frame.shape[:2]
+        (w, h) = image_frame.shape[:2]
+        detections_result = self._detect_from_image(cv2.resize(image_frame, (self.image_height, self.image_width)))
+
+        return_boxs = []
+        for i in range(detections_result.shape[2]):
+            confidence = detections_result[0, 0, i, 2]
+            if confidence > self.confident_threshold:
+                idx = int(detections_result[0, 0, i, 1])
+
+                if(self.detect_classes[idx] in self.ignore_classes):
+                    continue
+                else:
+                    #bounding_box = detections_result[0, 0, i, 3:7] * np.array([w, h, w, h])
+                    bounding_box = detections_result[0, 0, i, 3:7] * np.array([h, w, h, w])
+                    (startX, startY, endX, endY) = bounding_box.astype("int")
+                    x = int(startX)
+                    y = int(startY)
+                    w = int(endX - startX)
+                    h = int(endY - startY)
+                    """
+                    if x < 0 :
+                        w = w + x
+                        x = 0
+                    if y < 0 :
+                        h = h + y
+                        y = 0
+                    """
+                    #if(x <= 10 or y <= 10 or w <= 10 or h <= 10):
+                    #    continue
+
+                    #print('^^^^^^^^^^^^^^^^^^^^^^')
+                    #print(x,y,w,h)
+                    #print('^^^^^^^^^^^^^^^^^^^^^^')
+                    return_boxs.append([x,y,w,h])
+
+        return return_boxs
+
+    def detect_box_from_image_2(self, image_frame):
+        (height, width) = image_frame.shape[:2]
+        detections_result = self._detect_from_image(cv2.resize(image_frame, (self.image_height, self.image_width)))
+
+        return_boxs = []
+        for i in range(detections_result.shape[2]):
+            confidence = detections_result[0, 0, i, 2]
+
+            if confidence > self.confident_threshold:
+                idx = int(detections_result[0, 0, i, 1])
+
+                if(self.detect_classes[idx] in self.ignore_classes):
+                    continue
+                else:
+                    bounding_box = detections_result[0, 0, i, 3:7] * np.array([width, height, width, height])
+                    (startX, startY, endX, endY) = bounding_box.astype("int")
+                    x = int(startX)
+                    y = int(startY)
+                    w = int(endX - startX)
+                    h = int(endY - startY)
+                    return_boxs.append([x, y, w, h])
+
+        return return_boxs
