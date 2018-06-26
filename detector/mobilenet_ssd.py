@@ -25,7 +25,6 @@ class Mobilenet_Ssd(Detector):
         self.detect_classes = config.get('mobilenet_ssd', 'detect_classes').split(',')
         self.ignore_classes = set(config.get('mobilenet_ssd', 'ignore_classes').split(','))
 
-        self.detect_frequency = int(config.get('common_config', 'detect_frequency'))
         self.is_display = config.get('common_config', 'is_display') == 'True'
 
     def _detect_from_image(self, image_frame):
@@ -70,11 +69,12 @@ class Mobilenet_Ssd(Detector):
         start_time = time.time()
         step_counter = 0
         while True:
-            ret, image_frame = cap.read()
-            if ret != True:
+            try:
+                ret, image_frame = cap.read()
+                (h, w) = image_frame.shape[:2]
+            except:
                 break
-            (h, w) = image_frame.shape[:2]
-            if(counter == 0 or step_counter % self.detect_frequency == 0):
+            if(counter == 0 or step_counter % 2 == 0):
                 step_counter = 0
                 detections_result = self._detect_from_image(cv2.resize(image_frame, (self.image_height, self.image_width)))
 
@@ -98,7 +98,7 @@ class Mobilenet_Ssd(Detector):
 
             counter += 1
             step_counter += 1
-            if(counter == 0 or step_counter % self.detect_frequency  == 0):
+            if(counter == 0 or step_counter % 2 == 0):
                 end_time = time.time()
                 cv2.putText(image_frame, 'FPS:' + str(round(step_counter / (end_time - start_time), 1)), (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0) , 2)
                 start_time = time.time()
@@ -193,9 +193,6 @@ class Mobilenet_Ssd(Detector):
                     #if(x <= 10 or y <= 10 or w <= 10 or h <= 10):
                     #    continue
 
-                    #print('^^^^^^^^^^^^^^^^^^^^^^')
-                    #print(x,y,w,h)
-                    #print('^^^^^^^^^^^^^^^^^^^^^^')
                     return_boxs.append([x,y,w,h])
 
         return return_boxs

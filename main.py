@@ -73,10 +73,12 @@ if __name__ == '__main__':
     start_time = time.time()
     total_time = time.time()
     while True:
-        ret, frame = video_capture.read()  # frame shape 640*480*3
+        ret, frame = video_capture.read()
         if ret != True:
             break
 
+        (h, w) = frame.shape[:2]
+        frame = cv2.resize(frame, (int(w/2), int(h/2)))
         if(counter == 0 or step_counter % 5 == 0):
             boxs = detector.detect_box_from_image_2(frame)
 
