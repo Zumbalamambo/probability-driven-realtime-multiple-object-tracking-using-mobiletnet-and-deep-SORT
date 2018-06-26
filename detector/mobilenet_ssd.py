@@ -25,6 +25,7 @@ class Mobilenet_Ssd(Detector):
         self.detect_classes = config.get('mobilenet_ssd', 'detect_classes').split(',')
         self.ignore_classes = set(config.get('mobilenet_ssd', 'ignore_classes').split(','))
 
+        self.detect_frequency = int(config.get('common_config', 'detect_frequency'))
         self.is_display = config.get('common_config', 'is_display') == 'True'
 
     def _detect_from_image(self, image_frame):
@@ -66,15 +67,16 @@ class Mobilenet_Ssd(Detector):
         cap = cv2.VideoCapture(video_path)
         total_time = time.time()
         counter = 0
-
+        start_time = time.time()
+        step_counter = 0
         while True:
-            start_time = time.time()
-            try:
-                ret, image_frame = cap.read()
-                (h, w) = image_frame.shape[:2]
-            except:
+            ret, image_frame = cap.read()
+            if ret != True:
                 break
-            detections_result = self._detect_from_image(cv2.resize(image_frame, (self.image_height, self.image_width)))
+            (h, w) = image_frame.shape[:2]
+            if(counter == 0 or step_counter % self.detect_frequency == 0):
+                step_counter = 0
+                detections_result = self._detect_from_image(cv2.resize(image_frame, (self.image_height, self.image_width)))
 
             for i in range(detections_result.shape[2]):
                 confidence = detections_result[0, 0, i, 2]
@@ -95,8 +97,11 @@ class Mobilenet_Ssd(Detector):
                         cv2.putText(image_frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255) , 2)
 
             counter += 1
-            end_time = time.time()
-            cv2.putText(image_frame, 'FPS:' + str(round(1.0 / (end_time - start_time), 1)), (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0) , 2)
+            step_counter += 1
+            if(counter == 0 or step_counter % self.detect_frequency  == 0):
+                end_time = time.time()
+                cv2.putText(image_frame, 'FPS:' + str(round(step_counter / (end_time - start_time), 1)), (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0) , 2)
+                start_time = time.time()
 
             if(self.is_display):
                 cv2.imshow('image', image_frame)
@@ -106,6 +111,7 @@ class Mobilenet_Ssd(Detector):
                 break
 
         print('Average FPS:', round(counter / (time.time() - total_time), 1))
+        print('Total eplased:', round(time.time() - total_time, 2))
         cap.release()
         cv2.destroyAllWindows()
 

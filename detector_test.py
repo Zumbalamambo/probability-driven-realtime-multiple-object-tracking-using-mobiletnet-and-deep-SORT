@@ -11,3 +11,8 @@ if __name__ == '__main__':
 
     # detect_webcam_test
     #det.detect_webcam()
+    
+    
+    
+    #det = Detecor_Selector(detector_name='mobilenet', config_path='detectors.cfg')
+    #det.detect_webcam()

@@ -6,13 +6,16 @@ Created on Sun Jun 24 10:29:25 2018
 """
 from .detector import Detector
 from .mobilenet_ssd import Mobilenet_Ssd
+from .mobilenet import Mobilenet
 
 class Detecor_Selector(Detector):
     def __init__(self, detector_name, config_path):
         self.detector = self._detector_selection(detector_name, config_path)
 
     def _detector_selection(self, detector_name, config_path):
-        detector_map = {'mobilenet_ssd' : Mobilenet_Ssd}
+        detector_map = {'mobilenet_ssd' : Mobilenet_Ssd,
+                        'mobilenet' : Mobilenet
+        }
 
         return detector_map[detector_name](config_path)
 
