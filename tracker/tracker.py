@@ -16,5 +16,5 @@ class Tracker_temp(Tracker_Template):
 
         return tracker_map[tracker_name](config_path)
 
-    def start_tracking(self):
-        self.tracker.start_tracking()
+    def start_tracking(self, frame, boxes, scores):
+        return self.tracker.start_tracking(frame, boxes, scores)
