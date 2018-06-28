@@ -78,8 +78,8 @@ if __name__ == '__main__':
             break
 
         (h, w) = frame.shape[:2]
-        frame = cv2.resize(frame, (int(w/2), int(h/2)))
-        if(counter == 0 or step_counter % 5 == 0):
+        #frame = cv2.resize(frame, (int(w/2), int(h/2)))
+        if(counter == 0 or step_counter % 1 == 0):
             boxs = detector.detect_box_from_image_2(frame)
 
             features = encoder(frame,boxs)
@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
         counter += 1
         step_counter += 1
-        if(counter == 0 or step_counter % 5 == 0):
+        if(counter == 0 or step_counter % 1 == 0):
             fps  = step_counter / (time.time()- start_time)
             step_counter = 0
             cv2.putText(frame, 'FPS:' + str(round(fps, 1)), (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0) , 2)
