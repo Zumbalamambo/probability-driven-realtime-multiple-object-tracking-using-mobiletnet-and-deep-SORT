@@ -10,6 +10,7 @@ import time
 
 from .detector_template import Detector_Template
 from .mobilenet_ssd import Mobilenet_Ssd
+from .mobilenetv2_ssdlite import Mobilenetv2_Ssdlite
 
 class Detector(Detector_Template):
     def __init__(self, detector_name, config_path):
@@ -23,13 +24,14 @@ class Detector(Detector_Template):
 
     def _detector_selection(self, detector_name, config_path):
         detector_map = {'mobilenet_ssd' : Mobilenet_Ssd,
+                        'mobilenetv2_ssdlite' : Mobilenetv2_Ssdlite,
         }
 
         return detector_map[detector_name](config_path)
 
     def _detect_image(self, image_frame, to_xywh):
         height, width = image_frame.shape[:2]
-        detection_results = self.detector.detect_image(image_frame, height, width, to_xywh)
+        detection_results = self.detector.detect_image(image_frame, height, width, to_xywh, self.confident_threshold)
         return detection_results
 
     def _detect_and_display_image_sequence(self, cap, to_xywh, is_display):
@@ -68,11 +70,10 @@ class Detector(Detector_Template):
     def _display(self, image_frame, results):
         for result in results:
             confident = result[5]
-            if(confident > self.confident_threshold):
-                label = "{}: {:.2f}%".format(result[0], confident*100)
-                cv2.rectangle(image_frame, (result[1], result[2]), (result[3], result[4]), (255, 0, 0), 2)
-                y = result[2] - 15 if  result[2] - 15 > 15 else  result[2] + 15
-                cv2.putText(image_frame, label, (result[1], y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255) , 2)
+            label = "{}: {:.2f}%".format(result[0], confident*100)
+            cv2.rectangle(image_frame, (result[1], result[2]), (result[3], result[4]), (255, 0, 0), 2)
+            y = result[2] - 15 if  result[2] - 15 > 15 else  result[2] + 15
+            cv2.putText(image_frame, label, (result[1], y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255) , 2)
 
     def detect_image_frame(self, image_frame, to_xywh):
         detection_results = self._detect_image(image_frame, to_xywh)
