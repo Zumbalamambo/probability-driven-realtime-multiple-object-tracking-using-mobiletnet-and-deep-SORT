@@ -21,17 +21,18 @@ warnings.filterwarnings('ignore')
 detect_frequency = 4
 down_sampling_ratio = 0.4
 is_detection_display = False
-is_tracking_display = True
+is_tracking_display = False
 
 if __name__ == '__main__':
     det = Detector(detector_name='mobilenetv2_ssdlite', config_path='./detectors.cfg')
     tra = Tracker_temp(tracker_name='deep_sort', config_path='./trackers.cfg')
 
-    #video_capture = cv2.VideoCapture('./_samples/MOT17-09-FRCNN.mp4')
-    video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture('./_samples/MOT17-09-FRCNN.mp4')
+    #video_capture = cv2.VideoCapture(0)
     fps = 0.0
     step_counter = 0
     counter = 0
+    first_time_flag = True
     start_time = time.time()
     total_time = time.time()
     while True:
@@ -62,14 +63,17 @@ if __name__ == '__main__':
 
         counter += 1
         step_counter += 1
-        if(step_counter % detect_frequency == 0 or counter == 0):
+        if(step_counter % detect_frequency == 0):
             fps  = step_counter / (time.time()- start_time)
             print(fps)
             step_counter = 0
             cv2.putText(frame, 'FPS:' + str(round(fps, 1)), (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0) , 2)
             start_time = time.time()
+            if(first_time_flag is True):
+                counter = 0
+                first_time_flag = False
 
-        cv2.imshow('', frame)
+        #cv2.imshow('', frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
