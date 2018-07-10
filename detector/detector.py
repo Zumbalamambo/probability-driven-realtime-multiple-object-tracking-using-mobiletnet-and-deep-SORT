@@ -79,9 +79,7 @@ class Detector(Detector_Template):
         detection_results = self._detect_image(image_frame, to_xywh)
         ret_results = list()
         for detection_result in detection_results:
-            confident = detection_result[5]
-            if(confident > self.confident_threshold):
-                ret_results.append(detection_result)
+            ret_results.append(detection_result)
         return ret_results
 
     def detect_image(self, image_path, to_xywh=False, is_display=None):
