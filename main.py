@@ -18,13 +18,16 @@ from tracker.deep_sort.tools.generate_detections import generate_detections as g
 from tracker.deep_sort.tools.generate_detections import create_box_encoder
 warnings.filterwarnings('ignore')
 
-detect_frequency = 4
-down_sampling_ratio = 0.4
-is_detection_display = False
-is_tracking_display = True
+
+ODD_DETECT_FREQUENCY = 5
+EVEN_DETECT_FREQUENCY = 3
+DETECT_SKIP_STATUS = True
+DOWN_SAMPLE_RATIO = 0.5
+IS_DETECTION_DISPLAY = False
+IS_TRACKING_DISPLAY = True
 
 if __name__ == '__main__':
-    det = Detector(detector_name='mobilenetv2_ssdlite', config_path='./detectors.cfg')
+    det = Detector(detector_name='mobilenet_ssd', config_path='./detectors.cfg')
     tra = Tracker_temp(tracker_name='deep_sort', config_path='./trackers.cfg')
 
     video_capture = cv2.VideoCapture('./_samples/MOT17-09-FRCNN.mp4')
@@ -40,30 +43,31 @@ if __name__ == '__main__':
         if ret != True:
             break
         (h, w) = frame.shape[:2]
-        frame = cv2.resize(frame, (int(w * down_sampling_ratio), int(h * down_sampling_ratio)))
-        if(step_counter % detect_frequency == 0 or counter == 0):
+        frame = cv2.resize(frame, (int(w * DOWN_SAMPLE_RATIO), int(h * DOWN_SAMPLE_RATIO)))
+        if((step_counter % ODD_DETECT_FREQUENCY == 0 and DETECT_SKIP_STATUS == True) or (step_counter % EVEN_DETECT_FREQUENCY == 0 and DETECT_SKIP_STATUS ==  False) or counter == 0):
             results = det.detect_image_frame(frame, to_xywh=True)
             boxes = np.array([result[1:5] for result in results])
             scores = np.array([result[5] for result in results])
 
         tracker, detections = tra.start_tracking(frame, boxes, scores)
         # Call the tracker
-        if(is_tracking_display is True):
+        if(IS_TRACKING_DISPLAY is True):
             for track in tracker.tracks:
-                #if track.is_confirmed() and track.time_since_update >1 :
-                #    continue
+                if track.is_confirmed() and track.time_since_update >1 :
+                    continue
                 bbox = track.to_tlbr()
                 cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,255,255), 2)
                 cv2.putText(frame, str(track.track_id),(int(bbox[0]), int(bbox[1])),0, 5e-3 * 200, (0,255,0),2)
 
-        if(is_detection_display is True):
+        if(IS_DETECTION_DISPLAY is True):
             for detection in detections:
                 bbox = detection.to_tlbr()
                 cv2.rectangle(frame,(int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,0,0), 2)
 
         counter += 1
         step_counter += 1
-        if(step_counter % detect_frequency == 0):
+        if((step_counter % ODD_DETECT_FREQUENCY == 0 and DETECT_SKIP_STATUS == True) or (step_counter % EVEN_DETECT_FREQUENCY == 0 and DETECT_SKIP_STATUS ==  False)):
+            DETECT_SKIP_STATUS = not DETECT_SKIP_STATUS
             fps  = step_counter / (time.time()- start_time)
             print(fps)
             step_counter = 0
