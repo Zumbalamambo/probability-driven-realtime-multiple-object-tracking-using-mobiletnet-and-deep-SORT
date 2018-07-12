@@ -8,12 +8,17 @@ import configparser
 import cv2
 import time
 
+from PIL import Image
+
 from .detector_template import Detector_Template
 from .mobilenet_ssd import Mobilenet_Ssd
 from .mobilenetv2_ssdlite import Mobilenetv2_Ssdlite
+from .squeezenetv1_0 import Squeezenetv1_0
+from .yolo import YOLO
 
 class Detector(Detector_Template):
     def __init__(self, detector_name, config_path):
+        self.detector_name = detector_name
         self.detector = self._detector_selection(detector_name, config_path)
 
         config = configparser.ConfigParser()
@@ -25,12 +30,16 @@ class Detector(Detector_Template):
     def _detector_selection(self, detector_name, config_path):
         detector_map = {'mobilenet_ssd' : Mobilenet_Ssd,
                         'mobilenetv2_ssdlite' : Mobilenetv2_Ssdlite,
+                        'squeezenetv1_0' : Squeezenetv1_0,
+                        'yolo' : YOLO,
         }
 
         return detector_map[detector_name](config_path)
 
     def _detect_image(self, image_frame, to_xywh):
         height, width = image_frame.shape[:2]
+        if(self.detector_name == 'yolo'):
+            image_frame = Image.fromarray(image_frame)
         detection_results = self.detector.detect_image(image_frame, height, width, to_xywh, self.confident_threshold)
         return detection_results
 

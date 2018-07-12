@@ -18,3 +18,15 @@ class Tracker_temp(Tracker_Template):
 
     def start_tracking(self, frame, boxes, scores):
         return self.tracker.start_tracking(frame, boxes, scores)
+
+    def need_detection(self):
+        return self.tracker.need_detection()
+
+    def set_need_detection(self, value):
+        self.tracker.set_need_detection(value)
+
+    def is_detection_needed(self):
+        return self.tracker.is_detection_needed()
+
+    def set_detecion_needed(self, value):
+        self.tracker.set_detecion_needed(value)

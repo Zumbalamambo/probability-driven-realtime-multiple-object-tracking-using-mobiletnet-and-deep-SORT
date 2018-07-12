@@ -17,19 +17,23 @@ from PIL import Image, ImageFont, ImageDraw
 
 from .yolo3.model import yolo_eval
 from .yolo3.utils import letterbox_image
+import configparser
 
 class YOLO(object):
-    def __init__(self):
-        print(os.path.abspath('.'))
-        self.model_path = './_saved_models/yolo/yolov3-tiny.h5'
-        self.anchors_path = './_saved_models/yolo/tiny_yolo_anchors.txt'
-        self.classes_path = './_saved_models/yolo/coco_classes.txt'
+    def __init__(self, config_path):
+        config = configparser.ConfigParser()
+        config.read(config_path)
+
+        self.model_path = config.get('yolo', 'model_path')
+        self.anchors_path = config.get('yolo', 'anchors_path')
+        self.classes_path = config.get('yolo', 'classes_path')
+        self.model_image_size = (int(config.get('yolo', 'image_width')), int(config.get('yolo', 'image_height')))
+
         self.score = 0.5
         self.iou = 0.5
         self.class_names = self._get_class()
         self.anchors = self._get_anchors()
         self.sess = K.get_session()
-        self.model_image_size = (416, 416) # fixed size or (None, None)
         self.is_fixed_size = self.model_image_size != (None, None)
         self.boxes, self.scores, self.classes = self.generate()
 
@@ -73,15 +77,15 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
-    def detect_image(self, image):
+    def detect_image(self, image_frame, height, width, to_xywh, confident_threshold):
         if self.is_fixed_size:
             assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
             assert self.model_image_size[1]%32 == 0, 'Multiples of 32 required'
-            boxed_image = letterbox_image(image, tuple(reversed(self.model_image_size)))
+            boxed_image = letterbox_image(image_frame, height, width, tuple(reversed(self.model_image_size)))
         else:
-            new_image_size = (image.width - (image.width % 32),
-                              image.height - (image.height % 32))
-            boxed_image = letterbox_image(image, new_image_size)
+            new_image_size = (width - (width % 32),
+                              height - (height % 32))
+            boxed_image = letterbox_image(image_frame, height, width, new_image_size)
         image_data = np.array(boxed_image, dtype='float32')
 
         #print(image_data.shape)
@@ -92,29 +96,30 @@ class YOLO(object):
             [self.boxes, self.scores, self.classes],
             feed_dict={
                 self.yolo_model.input: image_data,
-                self.input_image_shape: [image.size[1], image.size[0]],
+                self.input_image_shape: [image_frame.size[1], image_frame.size[0]],
                 K.learning_phase(): 0
             })
-        return_boxs = []
+        detection_results = []
         for i, c in reversed(list(enumerate(out_classes))):
-            predicted_class = self.class_names[c]
-            if predicted_class != 'person' :
-                continue
-            box = out_boxes[i]
-           # score = out_scores[i]  
-            x = int(box[1])  
-            y = int(box[0])  
-            w = int(box[3]-box[1])
-            h = int(box[2]-box[0])
-            if x < 0 :
-                w = w + x
-                x = 0
-            if y < 0 :
-                h = h + y
-                y = 0 
-            return_boxs.append([x,y,w,h])
+            confidence = out_scores[i]
+            if(confidence > confident_threshold):
+                predicted_class = self.class_names[c]
+                if predicted_class != 'person' :
+                    continue
+                box = out_boxes[i]
+                x = int(box[1])  
+                y = int(box[0])  
+                w = int(box[3]-box[1])
+                h = int(box[2]-box[0])
+                if x < 0 :
+                    w = w + x
+                    x = 0
+                if y < 0 :
+                    h = h + y
+                    y = 0 
+                detection_results.append([predicted_class, x, y, w, h, confidence])
 
-        return return_boxs
+        return detection_results
 
     def close_session(self):
         self.sess.close()

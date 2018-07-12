@@ -19,18 +19,16 @@ from tracker.deep_sort.tools.generate_detections import create_box_encoder
 warnings.filterwarnings('ignore')
 
 
-ODD_DETECT_FREQUENCY = 5
-EVEN_DETECT_FREQUENCY = 3
-DETECT_SKIP_STATUS = True
+DETECT_FREQUENCY = 6
 DOWN_SAMPLE_RATIO = 0.5
 IS_DETECTION_DISPLAY = False
 IS_TRACKING_DISPLAY = True
 
 if __name__ == '__main__':
-    det = Detector(detector_name='mobilenet_ssd', config_path='./detectors.cfg')
+    det = Detector(detector_name='mobilenetv2_ssdlite', config_path='./detectors.cfg')
     tra = Tracker_temp(tracker_name='deep_sort', config_path='./trackers.cfg')
 
-    video_capture = cv2.VideoCapture('./_samples/MOT17-09-FRCNN.mp4')
+    video_capture = cv2.VideoCapture('./_samples/MOT17-09.mp4')
     #video_capture = cv2.VideoCapture(0)
     fps = 0.0
     step_counter = 0
@@ -44,16 +42,17 @@ if __name__ == '__main__':
             break
         (h, w) = frame.shape[:2]
         frame = cv2.resize(frame, (int(w * DOWN_SAMPLE_RATIO), int(h * DOWN_SAMPLE_RATIO)))
-        if((step_counter % ODD_DETECT_FREQUENCY == 0 and DETECT_SKIP_STATUS == True) or (step_counter % EVEN_DETECT_FREQUENCY == 0 and DETECT_SKIP_STATUS ==  False) or counter == 0):
+        if((step_counter % DETECT_FREQUENCY == 0) or counter == 0 or (tra.is_detection_needed() == True)):
             results = det.detect_image_frame(frame, to_xywh=True)
             boxes = np.array([result[1:5] for result in results])
             scores = np.array([result[5] for result in results])
+            tra.set_detecion_needed(False)
 
         tracker, detections = tra.start_tracking(frame, boxes, scores)
         # Call the tracker
         if(IS_TRACKING_DISPLAY is True):
             for track in tracker.tracks:
-                if track.is_confirmed() and track.time_since_update >1 :
+                if track.is_confirmed() and track.time_since_update > 3 :
                     continue
                 bbox = track.to_tlbr()
                 cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,255,255), 2)
@@ -66,8 +65,7 @@ if __name__ == '__main__':
 
         counter += 1
         step_counter += 1
-        if((step_counter % ODD_DETECT_FREQUENCY == 0 and DETECT_SKIP_STATUS == True) or (step_counter % EVEN_DETECT_FREQUENCY == 0 and DETECT_SKIP_STATUS ==  False)):
-            DETECT_SKIP_STATUS = not DETECT_SKIP_STATUS
+        if(step_counter % DETECT_FREQUENCY == 0):
             fps  = step_counter / (time.time()- start_time)
             print(fps)
             step_counter = 0
