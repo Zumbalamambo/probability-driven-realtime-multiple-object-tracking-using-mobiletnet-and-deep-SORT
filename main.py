@@ -18,9 +18,9 @@ DOWN_SAMPLE_RATIO = 0.5
 IS_DETECTION_DISPLAY = False
 IS_TRACKING_DISPLAY = True
 
-def tracking_by_detection(detector_name, tracker_name, videostream):
-    det = Detector(detector_name, config_path='./detectors.cfg')
-    tra = Tracker_temp(tracker_name, config_path='./trackers.cfg')
+def tracking_by_detection(detector_name, tracker_name, videostream, config_path='./config.cfg'):
+    det = Detector(detector_name, config_path)
+    tra = Tracker_temp(tracker_name, config_path)
     output_file = './_output/' + video_stream[video_stream.rfind('/')+1:video_stream.rfind('.')] + '.txt'
 
     video_capture = cv2.VideoCapture(video_stream)
