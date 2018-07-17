@@ -13,16 +13,14 @@ from detector.detector import Detector
 from tracker.tracker import Tracker_temp
 
 warnings.filterwarnings('ignore')
-DETECT_FREQUENCY = 6
-DOWN_SAMPLE_RATIO = 0.5
+DETECT_FREQUENCY = 1
+DOWN_SAMPLE_RATIO = 1
 IS_DETECTION_DISPLAY = False
 IS_TRACKING_DISPLAY = True
 
-def tracking_by_detection(detector_name, tracker_name, videostream, config_path='./config.cfg'):
+def tracking_by_detection(detector_name, tracker_name, video_stream, output_file, config_path='./config.cfg',show_image=True):
     det = Detector(detector_name, config_path)
     tra = Tracker_temp(tracker_name, config_path)
-    output_file = './_output/' + video_stream[video_stream.rfind('/')+1:video_stream.rfind('.')] + '.txt'
-
     video_capture = cv2.VideoCapture(video_stream)
     fps = 0.0
     step_counter = 0
@@ -48,13 +46,13 @@ def tracking_by_detection(detector_name, tracker_name, videostream, config_path=
         # Call the tracker
         if(IS_TRACKING_DISPLAY is True):
             for track in tracker.tracks:
-                if track.is_confirmed() and track.time_since_update > 3 :
+                if track.is_confirmed() and track.time_since_update > 1 :
                     continue
-                bbox = track.to_tlwh()
-                result_list.append([frame_index, track.track_id, bbox[1], bbox[0], bbox[2], bbox[3]])
                 bbox = track.to_tlbr()
                 cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,255,255), 2)
                 cv2.putText(frame, str(track.track_id),(int(bbox[0]), int(bbox[1])),0, 5e-3 * 200, (0,255,0),2)
+                bbox = track.to_tlwh()
+                result_list.append([frame_index, track.track_id, bbox[0], bbox[1], bbox[2], bbox[3]])
 
         if(IS_DETECTION_DISPLAY is True):
             for detection in detections:
@@ -75,7 +73,8 @@ def tracking_by_detection(detector_name, tracker_name, videostream, config_path=
                 total_time = time.time()
                 first_time_flag = False
 
-        cv2.imshow('image', frame)
+        if(show_image == True):
+            cv2.imshow('image', frame)
         frame_index += 1
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -84,10 +83,10 @@ def tracking_by_detection(detector_name, tracker_name, videostream, config_path=
     print('Total eplased:', round(time.time() - total_time, 2))
 
     try:
-        with open(output_file, 'w') as f:
+        with open('./_output/' + output_file + '.txt', 'w') as f:
             for result in result_list:
                 #bounding_box = to_tlwh(np.array([result[2], result[3], result[4], result[5]]))
-                print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1' % (int(result[0]), int(result[1]), result[2], result[3], result[4], result[5]),file=f)
+                print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1' % (int(result[0]), int(result[1]), float(result[2]), float(result[3]), float(result[4]), float(result[5])),file=f)
     except Exception as e:
         print(e)
         print('Something went wrong when writing output file!')
@@ -95,8 +94,10 @@ def tracking_by_detection(detector_name, tracker_name, videostream, config_path=
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    detector_name = 'mobilenetv2_ssdlite' 
+    detector_name = 'yolo' 
     tracker_name = 'deep_sort'
     video_stream = './_samples/MOT16-09.mp4'
+    # video_stream = 'D:/_videos/MOT2016/train/MOT16-09/img1/%06d.jpg'
+    output_file = 'MOT16-09'
 
-    tracking_by_detection(detector_name, tracker_name, video_stream)
+    tracking_by_detection(detector_name, tracker_name, video_stream, output_file)

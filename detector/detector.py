@@ -114,3 +114,41 @@ class Detector(Detector_Template):
     def detect_webcam(self, to_xywh=False):
         cap = cv2.VideoCapture(0)
         self._detect_and_display_image_sequence(cap, to_xywh, self.is_display)
+
+    def generate_detecions(self, video_stream, output_file=None, to_xywh=True):
+        cap = cv2.VideoCapture(video_stream)
+        total_time = time.time()
+        counter = 0
+        start_time = time.time()
+        step_counter = 0
+        frame_counter = 1
+        result_list = []
+        
+        DETECT_FREQUENCY = 1
+        DOWN_SAMPLE_RATIO = 0.5
+        while True:
+            ret, image_frame = cap.read()
+            if ret != True:
+                break
+            (h, w) = image_frame.shape[:2]
+            image_frame = cv2.resize(image_frame, (int(w * DOWN_SAMPLE_RATIO), int(h * DOWN_SAMPLE_RATIO)))
+            if((step_counter % DETECT_FREQUENCY == 0) or counter == 0):
+                detection_results = self._detect_image(image_frame, to_xywh)
+                step_counter = 0
+
+            for detection in detection_results:
+                result_list.append([frame_counter, detection[1], detection[2], detection[3], detection[4], detection[5]])
+            frame_counter += 1
+            counter += 1
+
+        print('Total eplased:', round(time.time() - total_time, 2))
+        try:
+            with open(output_file + '_det.txt', 'w') as f:
+                for result in result_list:
+                    print('%d,%d,%.2f,%.2f,%.2f,%.2f,%2f,-1,-1,-1' % (int(result[0]), -1, float(result[1]), float(result[2]), float(result[3]), float(result[4]), float(result[5])),file=f)
+        except Exception as e:
+            print(e)
+            print('Something went wrong when writing output file!')
+
+        cap.release()
+        cv2.destroyAllWindows()

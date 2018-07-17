@@ -35,40 +35,40 @@ class Tracker_Deep_Sort(Tracker_Template):
         nn_budget = int(config.get('deep_sort', 'nn_budget'))
         model_filename = config.get('deep_sort', 'model_path')
 
-        self.encoder = create_box_encoder(model_filename, batch_size=1)
+        self.encoder = create_box_encoder(model_filename, batch_size=32)
         metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
         self.tracker = Tracker(metric)
 
-    def _create_detections(self, detection_mat, frame_idx, min_height=0):
-        """Create detections for given frame index from the raw detection matrix.
+    # def _create_detections(self, detection_mat, frame_idx, min_height=0):
+    #     """Create detections for given frame index from the raw detection matrix.
 
-        Parameters
-        ----------
-        detection_mat : ndarray
-            Matrix of detections. The first 10 columns of the detection matrix are
-            in the standard MOTChallenge detection format. In the remaining columns
-            store the feature vector associated with each detection.
-        frame_idx : int
-            The frame index.
-        min_height : Optional[int]
-            A minimum detection bounding box height. Detections that are smaller
-            than this value are disregarded.
+    #     Parameters
+    #     ----------
+    #     detection_mat : ndarray
+    #         Matrix of detections. The first 10 columns of the detection matrix are
+    #         in the standard MOTChallenge detection format. In the remaining columns
+    #         store the feature vector associated with each detection.
+    #     frame_idx : int
+    #         The frame index.
+    #     min_height : Optional[int]
+    #         A minimum detection bounding box height. Detections that are smaller
+    #         than this value are disregarded.
 
-        Returns
-        -------
-        List[tracker.Detection]
-            Returns detection responses at given frame index.
-        """
-        frame_indices = detection_mat[:, 0].astype(np.int)
-        mask = frame_indices == frame_idx
+    #     Returns
+    #     -------
+    #     List[tracker.Detection]
+    #         Returns detection responses at given frame index.
+    #     """
+    #     frame_indices = detection_mat[:, 0].astype(np.int)
+    #     mask = frame_indices == frame_idx
 
-        detection_list = []
-        for row in detection_mat[mask]:
-            bbox, confidence, feature = row[2:6], row[6], row[10:]
-            if bbox[3] < min_height:
-                continue
-            detection_list.append(Detection(bbox, confidence, feature))
-        return detection_list
+    #     detection_list = []
+    #     for row in detection_mat[mask]:
+    #         bbox, confidence, feature = row[2:6], row[6], row[10:]
+    #         if bbox[3] < min_height:
+    #             continue
+    #         detection_list.append(Detection(bbox, confidence, feature))
+    #     return detection_list
 
     def start_tracking(self, frame, boxes, scores):
 
