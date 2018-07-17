@@ -1,2 +1,3 @@
 *.npy
 *.pyc
+_saved_models/yolo/yolov3.h5
