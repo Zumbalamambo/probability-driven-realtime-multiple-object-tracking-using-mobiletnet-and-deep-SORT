@@ -13,7 +13,7 @@ from detector.detector import Detector
 from tracker.tracker import Tracker_temp
 
 warnings.filterwarnings('ignore')
-DETECT_FREQUENCY = 1
+DETECT_FREQUENCY = 5
 DOWN_SAMPLE_RATIO = 1
 IS_DETECTION_DISPLAY = False
 IS_TRACKING_DISPLAY = True
@@ -79,7 +79,9 @@ def tracking_by_detection(detector_name, tracker_name, video_stream, output_file
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-    print('Average FPS:', round(counter / (time.time() - total_time), 1))
+
+    fps = counter / (time.time() - total_time)
+    print('Average FPS:', round(fps, 1))
     print('Total eplased:', round(time.time() - total_time, 2))
 
     try:
@@ -92,6 +94,7 @@ def tracking_by_detection(detector_name, tracker_name, video_stream, output_file
         print('Something went wrong when writing output file!')
     video_capture.release()
     cv2.destroyAllWindows()
+    return fps, counter
 
 if __name__ == '__main__':
     detector_name = 'yolo' 
