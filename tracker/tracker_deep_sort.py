@@ -35,7 +35,7 @@ class Tracker_Deep_Sort(Tracker_Template):
         nn_budget = int(config.get('deep_sort', 'nn_budget'))
         model_filename = config.get('deep_sort', 'model_path')
 
-        self.encoder = create_box_encoder(model_filename, batch_size=40960)
+        self.encoder = create_box_encoder(model_filename, batch_size=4096)
         metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
         self.tracker = Tracker(metric)
 
