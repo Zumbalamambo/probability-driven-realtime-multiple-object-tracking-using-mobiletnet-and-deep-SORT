@@ -18,7 +18,7 @@ if __name__ == '__main__':
     OUTPUT_DIR = './_output/'
     video_stream_list = []
     seq_name_list = []
-    SINGLE_TASK = 'vanilla_mobilenetssd'
+    SINGLE_TASK = 'skip7_with_prob_down_sample_yolov3_tiny'
 
     multi_task_map = {
         # YOLOv3
