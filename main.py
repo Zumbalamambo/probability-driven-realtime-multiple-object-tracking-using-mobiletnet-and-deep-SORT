@@ -108,23 +108,26 @@ def tracking_by_detection(detector_name, tracker_name, video_stream, output_file
     
     video_capture.release()
     cv2.destroyAllWindows()
-    del det
-    del tra
-    del tracker
-    del detections
-    del result_list
-    del video_capture
-    del frame
-    del frame_resized
-    del results
-    del boxes
-    del bbox
-    del scores
-    del step_counter
-    del first_time_flag
-    del start_time
-    del total_time
-    del frame_index
+    try:
+        del det
+        del tra
+        del tracker
+        del detections
+        del result_list
+        del video_capture
+        del frame
+        del frame_resized
+        del results
+        del boxes
+        del bbox
+        del scores
+        del step_counter
+        del first_time_flag
+        del start_time
+        del total_time
+        del frame_index
+    except Exception as e:
+        print(e)
     return fps, counter
 
 if __name__ == '__main__':
