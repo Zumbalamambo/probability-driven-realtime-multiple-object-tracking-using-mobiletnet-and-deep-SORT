@@ -12,20 +12,20 @@ MOT15_train_seq = ['ADL-Rundle-6', 'ADL-Rundle-8', 'ETH-Bahnhof', 'ETH-Pedcross2
 MOT15_test_seq = ['ADL-Rundle-1', 'ADL-Rundle-3', 'AVG-TownCentre', 'ETH-Crossing', 'ETH-Jelmoli', 'ETH-Linthescher', 'KITTI-16', 'KITTI-19', 'PETS09-S2L2', 'TUD-Crossing', 'Venice-1']
 
 if __name__ == '__main__':
-    MODE = 'MOT15test'
+    MODE = 'MOT15train'
     #MOT_DIR = 'D:/_videos/MOT2016'
     MOT_DIR = 'D:/_videos/2DMOT2015'
     OUTPUT_DIR = './_output/'
     video_stream_list = []
     seq_name_list = []
-    SINGLE_TASK = 'skip7_with_prob_down_sample_yolov3_tiny'
+    SINGLE_TASK = 'skip2_with_prob_yolov3_tiny'
 
     multi_task_map = {
         # YOLOv3
         ## vanilla
         'vanilla_yolov3_tiny': {'detector_name':'yolo', 'tracker_name':'deep_sort', 'output_dir':OUTPUT_DIR + 'yolov3_tiny/vanilla/', 'detect_frequency':1, 'down_sample_ratio':1.0, 'is_probability_driven_detect': False},
         'vanilla_down_sample_yolov3_tiny': {'detector_name':'yolo', 'tracker_name':'deep_sort', 'output_dir':OUTPUT_DIR + 'yolov3_tiny/vanilla_down_sample/', 'detect_frequency':1, 'down_sample_ratio':0.5, 'is_probability_driven_detect': False},
-        ## Skip 2
+        ## Skip 2 
         'skip2_yolov3_tiny': {'detector_name':'yolo', 'tracker_name':'deep_sort', 'output_dir':OUTPUT_DIR + 'yolov3_tiny/skip2/', 'detect_frequency':2, 'down_sample_ratio':1.0, 'is_probability_driven_detect': False},
         'skip2_down_sample_yolov3_tiny': {'detector_name':'yolo', 'tracker_name':'deep_sort', 'output_dir':OUTPUT_DIR + 'yolov3_tiny/skip2_down_sample/', 'detect_frequency':2, 'down_sample_ratio':0.5, 'is_probability_driven_detect': False},
         'skip2_with_prob_yolov3_tiny': {'detector_name':'yolo', 'tracker_name':'deep_sort', 'output_dir':OUTPUT_DIR + 'yolov3_tiny/skip2_with_prob/', 'detect_frequency':2, 'down_sample_ratio':1.0, 'is_probability_driven_detect': True},
