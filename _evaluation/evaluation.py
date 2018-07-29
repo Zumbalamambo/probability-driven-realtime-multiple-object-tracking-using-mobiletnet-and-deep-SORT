@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+from scipy.spatial.distance import cdist
+from scipy.spatial import distance
 from collections import OrderedDict
 
 from bokeh.plotting import output_file, figure, show
@@ -16,6 +18,64 @@ class MOT_eval(object):
     def evaluation(self):
         raise NotImplementedError
     
+    def normalization(self, data, max_val, min_val, method='max_min', **kwargs):
+        new_data = []
+        temp_data = []
+        for i, d in enumerate(data):
+            if(method == 'max_min'):
+                new_data.append((d - min_val) / (max_val - min_val))
+            elif(method == 'max_min_diff'):
+                if(i == 0):
+                    new_data.append((d - min_val) / (max_val - min_val))
+                else:
+                    d = data[i] - data[i-1]
+                    new_data.append((d - min_val) / (max_val - min_val))
+            elif(method == 'diff_of_max_min'):
+                temp_data.append((d - min_val) / (max_val - min_val))
+        
+        if(method == 'diff_of_max_min'):
+            for i, temp in enumerate(temp_data):
+                if(i == 0):
+                    continue
+                else:
+                    new_data.append(temp_data[i] - temp_data[i-1])
+
+        return new_data
+
+    def standardization(self, data, method='sigmoid', **kwargs):
+        new_data = []
+        for i, d in enumerate(data):
+            if(method == 'sigmoid'):
+                new_data.append(1 / (1 + np.exp(-d)))
+            elif(method == 'zscore'):
+                new_data.append((d - kwargs['mean']) / kwargs['std'])
+            else:
+                new_data.append(d)
+        return new_data
+
+    def euclidean_distance(self, X, Y, method='euclidean', vis=False):
+        distances = list()
+        for x, y in zip(X, Y):
+            print(x,y)
+            if(method == 'euclidean'):
+                distances.append(np.sqrt(x**2 +  y**2))
+            elif(method == 'manhattan'):
+                distances.append(np.abs(x) + np.abs(y))
+            elif(method == 'div'):
+                distances.append(x / y)
+            else:
+                raise NotImplementedError
+        return distances
+
+    def increment_and_decrement(self, X, Y):
+        increment = []
+        decrement = []
+        for i in range(len(X)):
+            if(i % 2 != 0 and i != 0):
+                increment.append((X[i] - X[i-1]) / X[i])
+                decrement.append((Y[i] - Y[i-1]) / Y[i])
+        return increment, decrement
+
     def visualization(self):
         # Data prepare
         METRICS_MAPPING = {
@@ -23,7 +83,15 @@ class MOT_eval(object):
             'downsampling': ['vanilla', 'skip1_downsampling', 'skip2_downsampling', 'skip4_downsampling', 'skip6_downsampling'],
             'prob_driven': ['vanilla', 'skip1_prob', 'skip2_prob', 'skip4_prob', 'skip6_prob'],
             'downsampling_with_prob_driven': ['vanilla', 'skip1_downsampling_prob', 'skip2_downsampling_prob', 'skip4_downsampling_prob', 'skip6_downsampling_prob'],
+            'vanilla': ['vanilla'],
+            'skip1': ['skip1', 'skip1_prob'],
+            'skip2': ['skip2', 'skip2_prob'],
+            'skip4': ['skip4', 'skip4_prob'],
+            'skip6': ['skip6', 'skip6_prob'],
+
+            'all': ['vanilla', 'skip1', 'skip1_prob', 'skip2', 'skip2_prob', 'skip4', 'skip4_prob', 'skip6', 'skip6_prob']
         }
+        # Keys = yolov3, mobilenet ssd, squeeze net 1.0
         keys = list(self.data.keys())
         
         FPS_data = {}
@@ -34,6 +102,12 @@ class MOT_eval(object):
             FPS_data[key]['downsampling'] = []
             FPS_data[key]['prob_driven'] = []
             FPS_data[key]['downsampling_with_prob_driven'] = []
+            FPS_data[key]['vanilla'] = []
+            FPS_data[key]['skip1'] = []
+            FPS_data[key]['skip2'] = []
+            FPS_data[key]['skip4'] = []
+            FPS_data[key]['skip6'] = []
+            FPS_data[key]['all'] = []
             #FPS_data[key]['color'] = Viridis6
             
             MOTA_data[key] = {}
@@ -41,21 +115,68 @@ class MOT_eval(object):
             MOTA_data[key]['downsampling'] = []
             MOTA_data[key]['prob_driven'] = []
             MOTA_data[key]['downsampling_with_prob_driven'] = []
+            MOTA_data[key]['vanilla'] = []
+            MOTA_data[key]['skip1'] = []
+            MOTA_data[key]['skip2'] = []
+            MOTA_data[key]['skip4'] = []
+            MOTA_data[key]['skip6'] = []
+            MOTA_data[key]['all'] = []
             #MOTA_data[key]['color'] = Viridis6
-            for algrithm, metrics in value.items():
-                if(algrithm in METRICS_MAPPING['skip_frame']):
+            for algorithm, metrics in value.items():
+                if(algorithm in METRICS_MAPPING['skip_frame']):
                     FPS_data[key]['skip_frame'].append(metrics['FPS'])
                     MOTA_data[key]['skip_frame'].append(metrics['MOTA'])
-                if(algrithm in METRICS_MAPPING['downsampling']):
+                if(algorithm in METRICS_MAPPING['downsampling']):
                     FPS_data[key]['downsampling'].append(metrics['FPS'])
                     MOTA_data[key]['downsampling'].append(metrics['MOTA'])
-                if(algrithm in METRICS_MAPPING['prob_driven']):
+                if(algorithm in METRICS_MAPPING['prob_driven']):
                     FPS_data[key]['prob_driven'].append(metrics['FPS'])
                     MOTA_data[key]['prob_driven'].append(metrics['MOTA'])
-                if(algrithm in METRICS_MAPPING['downsampling_with_prob_driven']):
+                if(algorithm in METRICS_MAPPING['downsampling_with_prob_driven']):
                     FPS_data[key]['downsampling_with_prob_driven'].append(metrics['FPS'])
                     MOTA_data[key]['downsampling_with_prob_driven'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['all']):
+                    FPS_data[key]['all'].append(metrics['FPS'])
+                    MOTA_data[key]['all'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['vanilla']):
+                    FPS_data[key]['vanilla'].append(metrics['FPS'])
+                    MOTA_data[key]['vanilla'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['skip1']):
+                    FPS_data[key]['skip1'].append(metrics['FPS'])
+                    MOTA_data[key]['skip1'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['skip2']):
+                    FPS_data[key]['skip2'].append(metrics['FPS'])
+                    MOTA_data[key]['skip2'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['skip4']):
+                    FPS_data[key]['skip4'].append(metrics['FPS'])
+                    MOTA_data[key]['skip4'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['skip6']):
+                    FPS_data[key]['skip6'].append(metrics['FPS'])
+                    MOTA_data[key]['skip6'].append(metrics['MOTA'])
+        
+        # Normalization
+        colors = ['red', 'green', 'blue', 'purple', 'orange']
+        KEY_INDEX = 2
+        NORM_METHOD = 'diff_of_max_min'
 
+        MAX_MOTA = max(MOTA_data[keys[KEY_INDEX]]['all'])
+        MIN_MOTA = min(MOTA_data[keys[KEY_INDEX]]['all'])
+        MAX_FPS = max(FPS_data[keys[KEY_INDEX]]['all'])
+        MIN_FPS = min(FPS_data[keys[KEY_INDEX]]['all'])
+
+        all_MOTA_arr = np.array(MOTA_data[keys[KEY_INDEX]]['all'])
+        all_FPS_arr = np.array(FPS_data[keys[KEY_INDEX]]['all'])
+        mean_MOTA = np.mean(all_MOTA_arr, axis=0)
+        std_MOTA = np.std(all_MOTA_arr, axis=0)
+
+        mean_FPS = np.mean(all_FPS_arr, axis=0)
+        std_FPS = np.std(all_FPS_arr, axis=0)
+
+        p = figure(title = "MOTA and FPS")
+        #print(self.increment_and_decrement(self.normalization(MOTA_data[keys[KEY_INDEX]]['all'], max_val=MAX_MOTA, min_val=MIN_MOTA), self.normalization(FPS_data[keys[KEY_INDEX]]['all'], max_val=MAX_FPS, min_val=MIN_FPS)))
+        print(self.increment_and_decrement(MOTA_data[keys[KEY_INDEX]]['all'], FPS_data[keys[KEY_INDEX]]['all']))
+
+        """
         # Constrcut Bokeh
 
         ## YOLOV3
@@ -187,18 +308,21 @@ class MOT_eval(object):
 
 
         show(gridplot([[p_yolov3_mota, p_yolov3_fps], [p_mobilenet_mota, p_mobilenet_fps], [p_squeezenetv1_0_mota, p_squeezenetv1_0_fps]], plot_width=600, plot_height=600))
+        """
 
 if __name__ == '__main__':
     data = {
         'yolov3_tiny': {'vanilla':                  {'MOTA':0.336, 'IDsw':635, 'FPS':9.997820328723746},
                         'vanilla_downsampling':     {'MOTA':0.329, 'IDsw':651, 'FPS':11.996064715800753},
-                        'skip1':                    {'MOTA':0.307, 'IDsw':570, 'FPS':16.56956741670473},
+                        #'skip1':                    {'MOTA':0.307, 'IDsw':570, 'FPS':16.56956741670473},
+                        'skip1':                    {'MOTA':0.307, 'IDsw':570, 'FPS':21.04679665688465},
                         'skip1_downsampling':       {'MOTA':0.300, 'IDsw':577, 'FPS':20.99549490626117},
-                        'skip1_prob':               {'MOTA':0.310, 'IDsw':594, 'FPS':17.757431631657468},
+                        #'skip1_prob':               {'MOTA':0.310, 'IDsw':594, 'FPS':15.757431631657468},
+                        'skip1_prob':               {'MOTA':0.310, 'IDsw':594, 'FPS':20.46273573127082},
                         'skip1_downsampling_prob':  {'MOTA':0.304, 'IDsw':601, 'FPS':19.84908451201911},
                         'skip2':                    {'MOTA':0.263, 'IDsw':581, 'FPS':20.68914912740483},
                         'skip2_downsampling':       {'MOTA':0.256, 'IDsw':538, 'FPS':25.16089209909558},
-                        'skip2_prob':               {'MOTA':0.282, 'IDsw':581, 'FPS':21.671446463250184},
+                        'skip2_prob':               {'MOTA':0.282, 'IDsw':581, 'FPS':19.671446463250184},
                         'skip2_downsampling_prob':  {'MOTA':0.272, 'IDsw':561, 'FPS':22.40254902085448},
                         'skip4':                    {'MOTA':0.174, 'IDsw':858, 'FPS':30.685362182060103},
                         'skip4_downsampling':       {'MOTA':0.173, 'IDsw':826, 'FPS':32.71531749075337},
