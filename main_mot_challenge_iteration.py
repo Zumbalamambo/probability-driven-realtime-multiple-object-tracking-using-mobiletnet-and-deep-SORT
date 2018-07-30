@@ -1,4 +1,12 @@
 from main import tracking_by_detection
+import sys
+def sizeof_fmt(num, suffix='B'):
+    ''' By Fred Cirera, after https://stackoverflow.com/a/1094933/1870254'''
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 MODE_MAP = {
     'MOT16train' : '/train/',
@@ -142,15 +150,21 @@ if __name__ == '__main__':
     else:
         raise NotImplementedError
 
+    detector_name = 'yolo' 
+    tracker_name = 'deep_sort'
+    tra_by_det = tracking_by_detection(detector_name, tracker_name)
+
     for task, info_dict in multi_task_map.items():
-    #for task, info_dict in multi_task_map.items():
-        if(task == SINGLE_TASK):
+    #if(task == SINGLE_TASK):
+        if(info_dict['detector_name'] == 'yolo' and info_dict['tracker_name'] == 'deep_sort'):
+            for name, size in sorted(((name, sys.getsizeof(value)) for name,value in locals().items()), key= lambda x: -x[1])[:10]:
+                print("{:>30}: {:>8}".format(name,sizeof_fmt(size)))
             fps_list = []
             nb_frames_list = []
             for i, video_stream in enumerate(video_stream_list):
                 print(i)
                 video_stream = MOT_DIR + video_stream + '/img1/%06d.jpg'
-                fps, nb_frames = tracking_by_detection(info_dict['detector_name'], info_dict['tracker_name'], video_stream=video_stream, output_file=info_dict['output_dir']+seq_name_list[i]+'.txt', show_image=False, detect_freq=info_dict['detect_frequency'], down_sample_ratio=info_dict['down_sample_ratio'], is_probability_driven_detect=info_dict['is_probability_driven_detect'])
+                fps, nb_frames = tra_by_det.tracking_by_detection(video_stream=video_stream, output_file=info_dict['output_dir']+seq_name_list[i]+'.txt', show_image=False, detect_freq=info_dict['detect_frequency'], down_sample_ratio=info_dict['down_sample_ratio'], is_probability_driven_detect=info_dict['is_probability_driven_detect'])
                 fps_list.append(fps)
                 nb_frames_list.append(nb_frames)
 
@@ -162,6 +176,7 @@ if __name__ == '__main__':
                 f.write('\r\n')
                 f.write(str(sum([fps * nb_frames for fps, nb_frames in zip(fps_list, nb_frames_list)]) / sum(nb_frames_list)))
                 f.write('\r\n')
+                f.write('--------------------------------------------------------------------\r\n')
 
     """ # Version 2
     MODE = 'train'
