@@ -35,7 +35,7 @@ class tracking_by_detection(object):
         
         return open(path, 'w')
 
-    def tracking_by_detection(self, video_stream, output_file, show_image=True, detect_freq=1, down_sample_ratio=1.0, is_probability_driven_detect=True):
+    def tracking_by_detection(self, video_stream, output_file, show_image=True, detect_freq=1, down_sample_ratio=1.0, is_probability_driven_detect=True, print_fps=False):
         video_capture = cv2.VideoCapture(video_stream)
         fps = 0.0
         step_counter = 0
@@ -78,7 +78,8 @@ class tracking_by_detection(object):
             step_counter += 1
             if(step_counter % detect_freq == 0):
                 fps  = step_counter / (time.time()- start_time)
-                print(fps)
+                if(print_fps is True):
+                    print(fps)
                 step_counter = 0
                 cv2.putText(frame, 'FPS:' + str(round(fps, 1)), (0, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0) , 2)
                 start_time = time.time()
@@ -100,7 +101,7 @@ class tracking_by_detection(object):
         print('Total eplased:', round(time.time() - total_time, 2))
 
         try:
-            f = open_with_mkdir(output_file)
+            f = self.open_with_mkdir(output_file)
             for result in result_list:
                 print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1' % (int(result[0]), int(result[1]), float(result[2]), float(result[3]), float(result[4]), float(result[5])),file=f)
             f.close()
