@@ -79,18 +79,24 @@ class MOT_eval(object):
     def visualization(self):
         # Data prepare
         METRICS_MAPPING = {
-            'skip_frame': ['vanilla', 'skip1', 'skip2', 'skip4', 'skip6'],
-            'downsampling': ['vanilla', 'skip1_downsampling', 'skip2_downsampling', 'skip4_downsampling', 'skip6_downsampling'],
-            'prob_driven': ['vanilla', 'skip1_prob', 'skip2_prob', 'skip4_prob', 'skip6_prob'],
-            'downsampling_with_prob_driven': ['vanilla', 'skip1_downsampling_prob', 'skip2_downsampling_prob', 'skip4_downsampling_prob', 'skip6_downsampling_prob'],
+            'skip_frame': ['vanilla', 'skip1', 'skip2', 'skip3', 'skip4', 'skip5', 'skip6', 'skip7', 'skip8', 'skip9', 'skip10'],
+            'downsampling': ['vanilla', 'skip1_downsampling', 'skip2_downsampling', 'skip3_downsampling', 'skip4_downsampling', 'skip5_downsampling', 'skip6_downsampling', 'skip7_downsampling', 'skip8_downsampling', 'skip9_downsampling', 'skip10_downsampling'],
+            'prob_driven': ['vanilla', 'skip1_prob', 'skip2_prob', 'skip3_prob', 'skip4_prob', 'skip5_prob', 'skip6_prob', 'skip7_prob', 'skip8_prob', 'skip9_prob', 'skip10_prob'],
+            'downsampling_with_prob_driven': ['vanilla', 'skip1_downsampling_prob', 'skip2_downsampling_prob', 'skip3_downsampling_prob', 'skip4_downsampling_prob', 'skip5_downsampling_prob', 'skip6_downsampling_prob', 'skip7_downsampling_prob', 'skip8_downsampling_prob', 'skip9_downsampling_prob', 'skip10_downsampling_prob'],
             'vanilla': ['vanilla'],
             'skip1': ['skip1', 'skip1_prob'],
             'skip2': ['skip2', 'skip2_prob'],
+            'skip3': ['skip3', 'skip3_prob'],
             'skip4': ['skip4', 'skip4_prob'],
+            'skip5': ['skip5', 'skip5_prob'],
             'skip6': ['skip6', 'skip6_prob'],
-
-            'all': ['vanilla', 'skip1', 'skip1_prob', 'skip2', 'skip2_prob', 'skip4', 'skip4_prob', 'skip6', 'skip6_prob']
+            'skip7': ['skip7', 'skip7_prob'],
+            'skip8': ['skip8', 'skip8_prob'],
+            'skip9': ['skip9', 'skip9_prob'],
+            'skip10': ['skip10', 'skip10_prob'],
         }
+        METRICS_MAPPING['all'] = METRICS_MAPPING['vanilla'] + METRICS_MAPPING['skip1'] + METRICS_MAPPING['skip2'] + METRICS_MAPPING['skip3'] + METRICS_MAPPING['skip4'] + METRICS_MAPPING['skip5'] + METRICS_MAPPING['skip6'] + METRICS_MAPPING['skip7'] + METRICS_MAPPING['skip8'] + METRICS_MAPPING['skip9'] + METRICS_MAPPING['skip10']
+
         # Keys = yolov3, mobilenet ssd, squeeze net 1.0
         keys = list(self.data.keys())
         
@@ -147,12 +153,30 @@ class MOT_eval(object):
                 if(algorithm in METRICS_MAPPING['skip2']):
                     FPS_data[key]['skip2'].append(metrics['FPS'])
                     MOTA_data[key]['skip2'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['skip3']):
+                    FPS_data[key]['skip3'].append(metrics['FPS'])
+                    MOTA_data[key]['skip3'].append(metrics['MOTA'])
                 if(algorithm in METRICS_MAPPING['skip4']):
                     FPS_data[key]['skip4'].append(metrics['FPS'])
                     MOTA_data[key]['skip4'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['skip5']):
+                    FPS_data[key]['skip5'].append(metrics['FPS'])
+                    MOTA_data[key]['skip5'].append(metrics['MOTA'])
                 if(algorithm in METRICS_MAPPING['skip6']):
                     FPS_data[key]['skip6'].append(metrics['FPS'])
                     MOTA_data[key]['skip6'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['skip7']):
+                    FPS_data[key]['skip7'].append(metrics['FPS'])
+                    MOTA_data[key]['skip7'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['skip8']):
+                    FPS_data[key]['skip8'].append(metrics['FPS'])
+                    MOTA_data[key]['skip8'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['skip9']):
+                    FPS_data[key]['skip9'].append(metrics['FPS'])
+                    MOTA_data[key]['skip9'].append(metrics['MOTA'])
+                if(algorithm in METRICS_MAPPING['skip10']):
+                    FPS_data[key]['skip10'].append(metrics['FPS'])
+                    MOTA_data[key]['skip10'].append(metrics['MOTA'])
         
         # Normalization
         colors = ['red', 'green', 'blue', 'purple', 'orange']
@@ -312,66 +336,136 @@ class MOT_eval(object):
 
 if __name__ == '__main__':
     data = {
-        'yolov3_tiny': {'vanilla':                  {'MOTA':0.336, 'IDsw':635, 'FPS':9.997820328723746},
-                        'vanilla_downsampling':     {'MOTA':0.329, 'IDsw':651, 'FPS':11.996064715800753},
-                        #'skip1':                    {'MOTA':0.307, 'IDsw':570, 'FPS':16.56956741670473},
-                        'skip1':                    {'MOTA':0.307, 'IDsw':570, 'FPS':21.04679665688465},
-                        'skip1_downsampling':       {'MOTA':0.300, 'IDsw':577, 'FPS':20.99549490626117},
-                        #'skip1_prob':               {'MOTA':0.310, 'IDsw':594, 'FPS':15.757431631657468},
-                        'skip1_prob':               {'MOTA':0.310, 'IDsw':594, 'FPS':20.46273573127082},
-                        'skip1_downsampling_prob':  {'MOTA':0.304, 'IDsw':601, 'FPS':19.84908451201911},
-                        'skip2':                    {'MOTA':0.263, 'IDsw':581, 'FPS':20.68914912740483},
-                        'skip2_downsampling':       {'MOTA':0.256, 'IDsw':538, 'FPS':25.16089209909558},
-                        'skip2_prob':               {'MOTA':0.282, 'IDsw':581, 'FPS':19.671446463250184},
-                        'skip2_downsampling_prob':  {'MOTA':0.272, 'IDsw':561, 'FPS':22.40254902085448},
-                        'skip4':                    {'MOTA':0.174, 'IDsw':858, 'FPS':30.685362182060103},
-                        'skip4_downsampling':       {'MOTA':0.173, 'IDsw':826, 'FPS':32.71531749075337},
-                        'skip4_prob':               {'MOTA':0.220, 'IDsw':778, 'FPS':26.27376224976722},
-                        'skip4_downsampling_prob':  {'MOTA':0.215, 'IDsw':721, 'FPS':28.642976056106697},
-                        'skip6':                    {'MOTA':0.115, 'IDsw':809, 'FPS':35.487960011851555},
-                        'skip6_downsampling':       {'MOTA':0.111, 'IDsw':821, 'FPS':36.79384991372523},
-                        'skip6_prob':               {'MOTA':0.177, 'IDsw':758, 'FPS':28.440129230784574},
-                        'skip6_downsampling_prob':  {'MOTA':0.172, 'IDsw':760, 'FPS':30.637051555246025},
+        'yolov3_tiny': {'vanilla':                  {'MOTA':0.336, 'IDsw':635, 'FPS':10.91483091271569},
+                        'vanilla_downsampling':     {'MOTA':0.328, 'IDsw':651, 'FPS':13.502331711038652},
+                        'skip1':                    {'MOTA':0.306, 'IDsw':570, 'FPS':19.37849194020307},
+                        'skip1_downsampling':       {'MOTA':0.299, 'IDsw':577, 'FPS':20.99770992639639},
+                        'skip1_prob':               {'MOTA':0.310, 'IDsw':594, 'FPS':17.687353215558588},
+                        'skip1_downsampling_prob':  {'MOTA':0.304, 'IDsw':601, 'FPS':19.712947568039144},
+                        'skip2':                    {'MOTA':0.262, 'IDsw':581, 'FPS':24.256086156797263},
+                        'skip2_downsampling':       {'MOTA':0.255, 'IDsw':538, 'FPS':26.168741967543177},
+                        'skip2_prob':               {'MOTA':0.281, 'IDsw':581, 'FPS':21.479398919731597},
+                        'skip2_downsampling_prob':  {'MOTA':0.272, 'IDsw':561, 'FPS':23.43272825379938},
+                        'skip3':                    {'MOTA':0.214, 'IDsw':581, 'FPS':27.17888721926881},
+                        'skip3_downsampling':       {'MOTA':0.212, 'IDsw':538, 'FPS':29.893118061828474},
+                        'skip3_prob':               {'MOTA':0.244, 'IDsw':581, 'FPS':24.071292701682104},
+                        'skip3_downsampling_prob':  {'MOTA':0.241, 'IDsw':561, 'FPS':26.58001187446766},
+                        'skip4':                    {'MOTA':0.173, 'IDsw':858, 'FPS':30.7455967240831},
+                        'skip4_downsampling':       {'MOTA':0.172, 'IDsw':826, 'FPS':32.88588810729369},
+                        'skip4_prob':               {'MOTA':0.220, 'IDsw':778, 'FPS':26.199336450564576},
+                        'skip4_downsampling_prob':  {'MOTA':0.217, 'IDsw':721, 'FPS':28.336271278397096},
+                        'skip4':                    {'MOTA':0.138, 'IDsw':858, 'FPS':33.1634016095078},
+                        'skip4_downsampling':       {'MOTA':0.136, 'IDsw':826, 'FPS':35.495408777649196},
+                        'skip4_prob':               {'MOTA':0.203, 'IDsw':778, 'FPS':27.908364645956375},
+                        'skip4_downsampling_prob':  {'MOTA':0.189, 'IDsw':721, 'FPS':30.19416683885809},
+                        'skip5':                    {'MOTA':0.114, 'IDsw':858, 'FPS':35.37700094177629},
+                        'skip5_downsampling':       {'MOTA':0.110, 'IDsw':826, 'FPS':37.192013066238104},
+                        'skip5_prob':               {'MOTA':0.178, 'IDsw':778, 'FPS':28.97554816233987},
+                        'skip5_downsampling_prob':  {'MOTA':0.172, 'IDsw':721, 'FPS':31.403710279478073},
+                        'skip7':                    {'MOTA':0.088, 'IDsw':809, 'FPS':36.69362283873649},
+                        'skip7_downsampling':       {'MOTA':0.085, 'IDsw':821, 'FPS':38.73970200190891},
+                        'skip7_prob':               {'MOTA':0.159, 'IDsw':758, 'FPS':30.685951335910243},
+                        'skip7_downsampling_prob':  {'MOTA':0.150, 'IDsw':760, 'FPS':33.450852756265625},
+                        'skip8':                    {'MOTA':0.068, 'IDsw':809, 'FPS':38.141400874916755},
+                        'skip8_downsampling':       {'MOTA':0.062, 'IDsw':821, 'FPS':40.26659519478607},
+                        'skip8_prob':               {'MOTA':0.136, 'IDsw':758, 'FPS':31.7064167890517},
+                        'skip8_downsampling_prob':  {'MOTA':0.132, 'IDsw':760, 'FPS':34.11690588833806},
+                        'skip9':                    {'MOTA':0.052, 'IDsw':809, 'FPS':39.11637415522933},
+                        'skip9_downsampling':       {'MOTA':0.050, 'IDsw':821, 'FPS':41.54897992498731},
+                        'skip9_prob':               {'MOTA':0.115, 'IDsw':758, 'FPS':34.267741847251465},
+                        'skip9_downsampling_prob':  {'MOTA':0.106, 'IDsw':760, 'FPS':36.149916359826285},
+                        'skip10':                   {'MOTA':0.029, 'IDsw':809, 'FPS':40.17551909751923},
+                        'skip10_downsampling':      {'MOTA':0.029, 'IDsw':821, 'FPS':42.46852955687042},
+                        'skip10_prob':              {'MOTA':0.095, 'IDsw':758, 'FPS':34.33952922260652},
+                        'skip10_downsampling_prob': {'MOTA':0.091, 'IDsw':760, 'FPS':36.742833768287326},
         },
-        
-        'Mobilenetv1': {'vanilla':                  {'MOTA':0.190, 'IDsw':577, 'FPS':9.8474409913098},
-                        'vanilla_downsampling':     {'MOTA':0.175, 'IDsw':647, 'FPS':10.164599991702229},
-                        'skip1':                    {'MOTA':0.177, 'IDsw':520, 'FPS':15.964183221155363},
-                        'skip1_downsampling':       {'MOTA':0.166, 'IDsw':569, 'FPS':16.252922740164827},
-                        'skip1_prob':               {'MOTA':0.180, 'IDsw':523, 'FPS':14.404656840037314},
-                        'skip1_downsampling_prob':  {'MOTA':0.168, 'IDsw':573, 'FPS':14.878176973130104},
-                        'skip2':                    {'MOTA':0.157, 'IDsw':494, 'FPS':20.658319625464184},
-                        'skip2_downsampling':       {'MOTA':0.144, 'IDsw':530, 'FPS':20.67430430123686},
-                        'skip2_prob':               {'MOTA':0.165, 'IDsw':503, 'FPS':17.894475042242103},
-                        'skip2_downsampling_prob':  {'MOTA':0.155, 'IDsw':553, 'FPS':18.656240404675874},
-                        'skip4':                    {'MOTA':0.107, 'IDsw':569, 'FPS':27.779953587538593},
-                        'skip4_downsampling':       {'MOTA':0.095, 'IDsw':557, 'FPS':28.811689015745316},
-                        'skip4_prob':               {'MOTA':0.132, 'IDsw':552, 'FPS':22.686678543601083},
-                        'skip4_downsampling_prob':  {'MOTA':0.120, 'IDsw':567, 'FPS':24.149181226030407},
-                        'skip6':                    {'MOTA':0.077, 'IDsw':586, 'FPS':32.62759230159879},
-                        'skip6_downsampling':       {'MOTA':0.060, 'IDsw':632, 'FPS':33.97791236616167},
-                        'skip6_prob':               {'MOTA':0.107, 'IDsw':558, 'FPS':26.286393126809276},
-                        'skip6_downsampling_prob':  {'MOTA':0.095, 'IDsw':604, 'FPS':27.845049291724436},
+
+        'Mobilenetv1': {'vanilla':                  {'MOTA':0.190, 'IDsw':577, 'FPS':9.587366376720645   },
+                        'vanilla_downsampling':     {'MOTA':0.175, 'IDsw':647, 'FPS':9.604095582070949   },
+                        'skip1':                    {'MOTA':0.176, 'IDsw':520, 'FPS':16.252922740164827   },
+                        'skip1_downsampling':       {'MOTA':0.166, 'IDsw':569, 'FPS':16.40143629589119   },
+                        'skip1_prob':               {'MOTA':0.180, 'IDsw':523, 'FPS':14.637242356905144 },
+                        'skip1_downsampling_prob':  {'MOTA':0.168, 'IDsw':573, 'FPS':15.00819154341061 },
+                        'skip2':                    {'MOTA':0.156, 'IDsw':494, 'FPS':21.112713136898233 },
+                        'skip2_downsampling':       {'MOTA':0.144, 'IDsw':530, 'FPS':21.599045498123022  },
+                        'skip2_prob':               {'MOTA':0.165, 'IDsw':503, 'FPS':18.271082139494112 },
+                        'skip2_downsampling_prob':  {'MOTA':0.155, 'IDsw':553, 'FPS':18.940480585788073 },
+                        'skip3':                    {'MOTA':0.125, 'IDsw':556, 'FPS':25.031793392567     },
+                        'skip3_downsampling':       {'MOTA':0.115, 'IDsw':541, 'FPS':25.69524476916254  },
+                        'skip3_prob':               {'MOTA':0.143, 'IDsw':551, 'FPS':20.73637006639062   },
+                        'skip3_downsampling_prob':  {'MOTA':0.137, 'IDsw':541, 'FPS':21.838736638293103 },
+                        'skip4':                    {'MOTA':0.107, 'IDsw':569, 'FPS':28.248501152598728  },
+                        'skip4_downsampling':       {'MOTA':0.095, 'IDsw':557, 'FPS':28.92964870730287   },
+                        'skip4_prob':               {'MOTA':0.132, 'IDsw':552, 'FPS':22.9520797318525    },
+                        'skip4_downsampling_prob':  {'MOTA':0.121, 'IDsw':567, 'FPS':24.037214225739753 },
+                        'skip5':                    {'MOTA':0.090, 'IDsw':607, 'FPS':30.847425214202232  },
+                        'skip5_downsampling':       {'MOTA':0.083, 'IDsw':632, 'FPS':31.919496472324205  },
+                        'skip5_prob':               {'MOTA':0.117, 'IDsw':624, 'FPS':25.052836061352583 },
+                        'skip5_downsampling_prob':  {'MOTA':0.111, 'IDsw':571, 'FPS':26.00150446850327   },
+                        'skip6':                    {'MOTA':0.077, 'IDsw':634, 'FPS':32.77340066189756  },
+                        'skip6_downsampling':       {'MOTA':0.060, 'IDsw':589, 'FPS':33.9516748754625     },
+                        'skip6_prob':               {'MOTA':0.107, 'IDsw':607, 'FPS':26.31595826272231   },
+                        'skip6_downsampling_prob':  {'MOTA':0.100, 'IDsw':555, 'FPS':27.87592524453508   },
+                        'skip7':                    {'MOTA':0.046, 'IDsw':608, 'FPS':34.443203535459524  },
+                        'skip7_downsampling':       {'MOTA':0.035, 'IDsw':618, 'FPS':35.8327512141732     },
+                        'skip7_prob':               {'MOTA':0.087, 'IDsw':592, 'FPS':27.943382730046693  },
+                        'skip7_downsampling_prob':  {'MOTA':0.075, 'IDsw':583, 'FPS':29.43941250448985   },
+                        'skip8':                    {'MOTA':0.042, 'IDsw':576, 'FPS':36.1859327760888     },
+                        'skip8_downsampling':       {'MOTA':0.028, 'IDsw':538, 'FPS':37.96312668466682  },
+                        'skip8_prob':               {'MOTA':0.072, 'IDsw':599, 'FPS':30.149078462256718 },
+                        'skip8_downsampling_prob':  {'MOTA':0.058, 'IDsw':554, 'FPS':31.716512547097206 },
+                        'skip9':                    {'MOTA':0.026, 'IDsw':569, 'FPS':37.851134549878715  },
+                        'skip9_downsampling':       {'MOTA':0.016, 'IDsw':566, 'FPS':39.18969878996756  },
+                        'skip9_prob':               {'MOTA':0.062, 'IDsw':570, 'FPS':31.81984758148207   },
+                        'skip9_downsampling_prob':  {'MOTA':0.051, 'IDsw':566, 'FPS':33.02867515902485   },
+                        'skip10':                   {'MOTA':0.008, 'IDsw':566, 'FPS':38.682324486214625  },
+                        'skip10_downsampling':      {'MOTA':0.000, 'IDsw':529, 'FPS':40.239209547617996  },
+                        'skip10_prob':              {'MOTA':0.052, 'IDsw':555, 'FPS':32.86656775948573   },
+                        'skip10_downsampling_prob': {'MOTA':0.034, 'IDsw':547, 'FPS':33.68070048767031   },
         },
-        
-        'squeezenetv1_0':   {'vanilla':                 {'MOTA':0.099, 'IDsw':484, 'FPS':20.042197668270926},
-                            'vanilla_downsampling':     {'MOTA':0.094, 'IDsw':433, 'FPS':20.717160451288965},
-                            'skip1':                    {'MOTA':0.093, 'IDsw':470, 'FPS':33.892409156740605},
-                            'skip1_downsampling':       {'MOTA':0.089, 'IDsw':438, 'FPS':34.70319714140534},
-                            'skip1_prob':               {'MOTA':0.094, 'IDsw':475, 'FPS':32.83395018961477},
-                            'skip1_downsampling_prob':  {'MOTA':0.090, 'IDsw':442, 'FPS':34.2523215195093},
-                            'skip2':                    {'MOTA':0.084, 'IDsw':408, 'FPS':42.13578772760607},
-                            'skip2_downsampling':       {'MOTA':0.082, 'IDsw':372, 'FPS':43.91007535351279},
-                            'skip2_prob':               {'MOTA':0.086, 'IDsw':412, 'FPS':40.69885878710128},
-                            'skip2_downsampling_prob':  {'MOTA':0.083, 'IDsw':368, 'FPS':43.13519724065963},
-                            'skip4':                    {'MOTA':0.068, 'IDsw':328, 'FPS':53.7290647954817},
-                            'skip4_downsampling':       {'MOTA':0.066, 'IDsw':301, 'FPS':56.63252656732362},
-                            'skip4_prob':               {'MOTA':0.073, 'IDsw':343, 'FPS':49.940943534497414},
-                            'skip4_downsampling_prob':  {'MOTA':0.069, 'IDsw':312, 'FPS':53.98874989205801},
-                            'skip6':                    {'MOTA':0.056, 'IDsw':301, 'FPS':62.0070361055159},
-                            'skip6_downsampling':       {'MOTA':0.054, 'IDsw':284, 'FPS':63.02879991725403},
-                            'skip6_prob':               {'MOTA':0.061, 'IDsw':313, 'FPS':58.15515176744455},
-                            'skip6_downsampling_prob':  {'MOTA':0.060, 'IDsw':297, 'FPS':59.56392827961034},
+
+        'squeezenetv1_0':   {'vanilla':                 {'MOTA':0.099, 'IDsw':484, 'FPS':21.44935625079553   },
+                            'vanilla_downsampling':     {'MOTA':0.094, 'IDsw':433, 'FPS':21.673303061043992 },
+                            'skip1':                    {'MOTA':0.093, 'IDsw':470, 'FPS':34.95316996147481   },
+                            'skip1_downsampling':       {'MOTA':0.089, 'IDsw':438, 'FPS':36.08590331121377  },
+                            'skip1_prob':               {'MOTA':0.094, 'IDsw':475, 'FPS':34.4817005552456     },
+                            'skip1_downsampling_prob':  {'MOTA':0.090, 'IDsw':442, 'FPS':35.761214014786916   },
+                            'skip2':                    {'MOTA':0.084, 'IDsw':408, 'FPS':44.77171969416171  },
+                            'skip2_downsampling':       {'MOTA':0.082, 'IDsw':372, 'FPS':46.824602862962315 },
+                            'skip2_prob':               {'MOTA':0.086, 'IDsw':412, 'FPS':43.458595382243914  },
+                            'skip2_downsampling_prob':  {'MOTA':0.083, 'IDsw':368, 'FPS':45.43947471585255  },
+                            'skip3':                    {'MOTA':0.075, 'IDsw':383, 'FPS':51.622355269656786 },
+                            'skip3_downsampling':       {'MOTA':0.073, 'IDsw':338, 'FPS':54.07041484165557  },
+                            'skip3_prob':               {'MOTA':0.079, 'IDsw':396, 'FPS':49.39042651822504   },
+                            'skip3_downsampling_prob':  {'MOTA':0.076, 'IDsw':349, 'FPS':52.12618978706074   },
+                            'skip4':                    {'MOTA':0.068, 'IDsw':328, 'FPS':56.87061749886791   },
+                            'skip4_downsampling':       {'MOTA':0.065, 'IDsw':301, 'FPS':60.00883585017237   },
+                            'skip4_prob':               {'MOTA':0.073, 'IDsw':343, 'FPS':55.01059174306023   },
+                            'skip4_downsampling_prob':  {'MOTA':0.069, 'IDsw':312, 'FPS':58.1498195028054    },
+                            'skip5':                    {'MOTA':0.059, 'IDsw':298, 'FPS':61.06823719084773  },
+                            'skip5_downsampling':       {'MOTA':0.061, 'IDsw':294, 'FPS':64.56221875850596  },
+                            'skip5_prob':               {'MOTA':0.068, 'IDsw':310, 'FPS':58.43487971342008   },
+                            'skip5_downsampling_prob':  {'MOTA':0.065, 'IDsw':301, 'FPS':62.216509837555506 },
+                            'skip6':                    {'MOTA':0.056, 'IDsw':301, 'FPS':64.21573734646725  },
+                            'skip6_downsampling':       {'MOTA':0.054, 'IDsw':284, 'FPS':68.07149014549003  },
+                            'skip6_prob':               {'MOTA':0.061, 'IDsw':313, 'FPS':62.483132411322366 },
+                            'skip6_downsampling_prob':  {'MOTA':0.060, 'IDsw':297, 'FPS':65.81801238599576   },
+                            'skip7':                    {'MOTA':0.044, 'IDsw':281, 'FPS':66.78610024826153  },
+                            'skip7_downsampling':       {'MOTA':0.044, 'IDsw':275, 'FPS':70.8977870230824     },
+                            'skip7_prob':               {'MOTA':0.049, 'IDsw':313, 'FPS':64.7894798995347    },
+                            'skip7_downsampling_prob':  {'MOTA':0.050, 'IDsw':275, 'FPS':69.22877880309186   },
+                            'skip8':                    {'MOTA':0.041, 'IDsw':258, 'FPS':70.83954394395735  },
+                            'skip8_downsampling':       {'MOTA':0.042, 'IDsw':266, 'FPS':74.81412007335364  },
+                            'skip8_prob':               {'MOTA':0.048, 'IDsw':281, 'FPS':68.89956792262453   },
+                            'skip8_downsampling_prob':  {'MOTA':0.048, 'IDsw':283, 'FPS':72.8589426992236    },
+                            'skip9':                    {'MOTA':0.038, 'IDsw':278, 'FPS':73.28210769652618  },
+                            'skip9_downsampling':       {'MOTA':0.038, 'IDsw':268, 'FPS':76.56258851656787  },
+                            'skip9_prob':               {'MOTA':0.043, 'IDsw':285, 'FPS':72.09432757117155   },
+                            'skip9_downsampling_prob':  {'MOTA':0.043, 'IDsw':277, 'FPS':74.65828044339783   },
+                            'skip10':                   {'MOTA':0.035, 'IDsw':236, 'FPS':78.29819637519171  },
+                            'skip10_downsampling':      {'MOTA':0.031, 'IDsw':232, 'FPS':79.04940471707698  },
+                            'skip10_prob':              {'MOTA':0.040, 'IDsw':246, 'FPS':72.6521545119922    },
+                            'skip10_downsampling_prob': {'MOTA':0.038, 'IDsw':230, 'FPS':77.15925109834762   },
         },
     }
 
