@@ -71,10 +71,10 @@ class MOT_eval(object):
         increment = []
         decrement = []
         for i in range(len(X)):
-            if(i % 2 != 0 and i != 0):
+            if(i % 2 == 0 and i != 0):
                 increment.append((X[i] - X[i-1]) / X[i])
                 decrement.append((Y[i] - Y[i-1]) / Y[i])
-        return increment, decrement
+        return increment, decrement, [increment[i] / decrement[i] for i in range(len(increment))]
 
     def visualization(self):
         # Data prepare
@@ -111,8 +111,14 @@ class MOT_eval(object):
             FPS_data[key]['vanilla'] = []
             FPS_data[key]['skip1'] = []
             FPS_data[key]['skip2'] = []
+            FPS_data[key]['skip3'] = []
             FPS_data[key]['skip4'] = []
+            FPS_data[key]['skip5'] = []
             FPS_data[key]['skip6'] = []
+            FPS_data[key]['skip7'] = []
+            FPS_data[key]['skip8'] = []
+            FPS_data[key]['skip9'] = []
+            FPS_data[key]['skip10'] = []
             FPS_data[key]['all'] = []
             #FPS_data[key]['color'] = Viridis6
             
@@ -124,8 +130,14 @@ class MOT_eval(object):
             MOTA_data[key]['vanilla'] = []
             MOTA_data[key]['skip1'] = []
             MOTA_data[key]['skip2'] = []
+            MOTA_data[key]['skip3'] = []
             MOTA_data[key]['skip4'] = []
+            MOTA_data[key]['skip5'] = []
             MOTA_data[key]['skip6'] = []
+            MOTA_data[key]['skip7'] = []
+            MOTA_data[key]['skip8'] = []
+            MOTA_data[key]['skip9'] = []
+            MOTA_data[key]['skip10'] = []
             MOTA_data[key]['all'] = []
             #MOTA_data[key]['color'] = Viridis6
             for algorithm, metrics in value.items():
@@ -196,12 +208,94 @@ class MOT_eval(object):
         mean_FPS = np.mean(all_FPS_arr, axis=0)
         std_FPS = np.std(all_FPS_arr, axis=0)
 
-        p = figure(title = "MOTA and FPS")
-        #print(self.increment_and_decrement(self.normalization(MOTA_data[keys[KEY_INDEX]]['all'], max_val=MAX_MOTA, min_val=MIN_MOTA), self.normalization(FPS_data[keys[KEY_INDEX]]['all'], max_val=MAX_FPS, min_val=MIN_FPS)))
+
+        # MOTA vs. FPS 
+        KEY_INDEX = 0
+        p_yolov3_mota = figure(title = "MOTA and FPS")
         print(self.increment_and_decrement(MOTA_data[keys[KEY_INDEX]]['all'], FPS_data[keys[KEY_INDEX]]['all']))
+        TOOLS = 'pan,wheel_zoom,reset,save'
+
+        yolov3_mota_source = ColumnDataSource(data=dict(
+            mota=[MOTA_data[keys[KEY_INDEX]]['skip_frame'],MOTA_data[keys[KEY_INDEX]]['downsampling'],MOTA_data[keys[KEY_INDEX]]['prob_driven'],MOTA_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
+            fps=[FPS_data[keys[KEY_INDEX]]['skip_frame'],FPS_data[keys[KEY_INDEX]]['downsampling'],FPS_data[keys[KEY_INDEX]]['prob_driven'],FPS_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
+            desc=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
+            color=['red', 'green', 'blue', 'purple'],
+            legend=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
+        ))
+
+        yolov3_mota_hover = HoverTool(tooltips=[
+                            ("index", "$index"),
+                            ("FPS", "$x"),
+                            ("MOTA", "$y"),
+                            ("desc", "@desc"),], 
+                            mode='mouse',
+        )
+
+        p_yolov3_mota = figure(title='YOLOv3 MOTA', tools=[TOOLS, yolov3_mota_hover])
+        p_yolov3_mota.multi_line('fps', 'mota', legend="legend", line_width=4, line_color='color', line_alpha=0.6, hover_line_color='color', hover_line_alpha=1.0, source=yolov3_mota_source)
+        p_yolov3_mota.legend.location = "top_right"
+        p_yolov3_mota.yaxis.axis_label = "MOTA"
+        
+
+        KEY_INDEX = 1
+        p_mobilenetssd_mota = figure(title = "MOTA and FPS")
+        print(self.increment_and_decrement(MOTA_data[keys[KEY_INDEX]]['all'], FPS_data[keys[KEY_INDEX]]['all']))
+        TOOLS = 'pan,wheel_zoom,reset,save'
+
+        mobilenetssd_mota_source = ColumnDataSource(data=dict(
+            mota=[MOTA_data[keys[KEY_INDEX]]['skip_frame'],MOTA_data[keys[KEY_INDEX]]['downsampling'],MOTA_data[keys[KEY_INDEX]]['prob_driven'],MOTA_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
+            fps=[FPS_data[keys[KEY_INDEX]]['skip_frame'],FPS_data[keys[KEY_INDEX]]['downsampling'],FPS_data[keys[KEY_INDEX]]['prob_driven'],FPS_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
+            desc=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
+            color=['red', 'green', 'blue', 'purple'],
+            legend=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
+        ))
+
+        mobilenetssd_mota_hover = HoverTool(tooltips=[
+                                    ("index", "$index"),
+                                    ("FPS", "$x"),
+                                    ("MOTA", "$y"),
+                                    ("desc", "@desc"),], 
+                                    mode='mouse',
+        )
+
+        p_mobilenetssd_mota = figure(title='MOBILENET SSD MOTA', tools=[TOOLS, mobilenetssd_mota_hover])
+        p_mobilenetssd_mota.multi_line('fps', 'mota', legend="legend", line_width=4, line_color='color', line_alpha=0.6, hover_line_color='color', hover_line_alpha=1.0, source=mobilenetssd_mota_source)
+        p_mobilenetssd_mota.legend.location = "top_right"
+        p_mobilenetssd_mota.yaxis.axis_label = "MOTA"
+
+        
+        KEY_INDEX = 2
+        p_squeezenetv10_mota = figure(title = "MOTA and FPS")
+        print(self.increment_and_decrement(MOTA_data[keys[KEY_INDEX]]['all'], FPS_data[keys[KEY_INDEX]]['all']))
+        TOOLS = 'pan,wheel_zoom,reset,save'
+
+        squeezenetv10_mota_source = ColumnDataSource(data=dict(
+            mota=[MOTA_data[keys[KEY_INDEX]]['skip_frame'],MOTA_data[keys[KEY_INDEX]]['downsampling'],MOTA_data[keys[KEY_INDEX]]['prob_driven'],MOTA_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
+            fps=[FPS_data[keys[KEY_INDEX]]['skip_frame'],FPS_data[keys[KEY_INDEX]]['downsampling'],FPS_data[keys[KEY_INDEX]]['prob_driven'],FPS_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
+            desc=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
+            color=['red', 'green', 'blue', 'purple'],
+            legend=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
+        ))
+
+        squeezenetv10_mota_hover = HoverTool(tooltips=[
+                                    ("index", "$index"),
+                                    ("FPS", "$x"),
+                                    ("MOTA", "$y"),
+                                    ("desc", "@desc"),], 
+                                    mode='mouse',
+        )
+
+        p_squeezenetv10_mota = figure(title='SQUEEZENET V10 MOTA', tools=[TOOLS, squeezenetv10_mota_hover])
+        p_squeezenetv10_mota.multi_line('fps', 'mota', legend="legend", line_width=4, line_color='color', line_alpha=0.6, hover_line_color='color', hover_line_alpha=1.0, source=squeezenetv10_mota_source)
+        p_squeezenetv10_mota.legend.location = "top_right"
+        p_squeezenetv10_mota.yaxis.axis_label = "MOTA"
+
+
+        show(gridplot([[p_yolov3_mota], [p_mobilenetssd_mota], [p_squeezenetv10_mota]], plot_width=1000, plot_height=600))
+
 
         """
-        # Constrcut Bokeh
+        # MOTA and FPS comparison plot
 
         ## YOLOV3
         TOOLS = 'pan,wheel_zoom,reset,save'
