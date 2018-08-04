@@ -70,7 +70,7 @@ if __name__ == '__main__':
     fmt = 'mot15-2D'
 
     groundtruths = 'D:/_videos/2DMOT2015/train/'
-    tests_list = ['./MOT15_Train/squeeze_v1_0/', './MOT15_Train/mobilenetssd/', './MOT15_Train/yolov3_tiny/']
+    tests_list = ['./MOT15_Train/yolov3_tiny/', './MOT15_Train/squeeze_v1_0/', './MOT15_Train/mobilenetssd/',]
     #'./MOT15_Test/yolov3_tiny/', './MOT15_Test/mobilenetssd/', './MOT15_Test/mobilenetv2_ssdlite/', './MOT15_Test/squeeze_v1_0/']
     case_list = ['vanilla', 'vanilla_down_sample',
     'skip1', 'skip1_down_sample', 'skip1_with_prob', 'skip1_with_prob_down_sample',

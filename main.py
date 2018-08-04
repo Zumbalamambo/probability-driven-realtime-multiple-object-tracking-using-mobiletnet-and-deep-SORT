@@ -134,9 +134,21 @@ class tracking_by_detection(object):
 if __name__ == '__main__':
     detector_name = 'yolo' 
     tracker_name = 'deep_sort'
-    video_stream = './_samples/MOT16-09.mp4'
-    # video_stream = 'D:/_videos/MOT2016/train/MOT16-09/img1/%06d.jpg'
-    output_file = 'MOT16-09'
 
+    MOT_DIR = 'D:/_videos/2DMOT2015/train/'
+    seq_name_list = ['ADL-Rundle-6', 'ADL-Rundle-8', 'ETH-Bahnhof', 'ETH-Pedcross2', 'ETH-Sunnyday', 'KITTI-13', 'KITTI-17', 'PETS09-S2L1', 'TUD-Campus', 'TUD-Stadtmitte', 'Venice-2']
+    video_stream_list = [MOT_DIR + video_stream for video_stream in seq_name_list]
+    OUTPUT_DIR = './_output/main_output/'
+
+    fps_list = []
+    nb_frames_list = []
     tra_by_det = tracking_by_detection(detector_name, tracker_name)
-    tra_by_det.tracking_by_detection(video_stream, output_file)
+
+    for i, video_stream in enumerate(video_stream_list):
+        print('%d / %d'%(i+1, len(video_stream_list)))
+        video_stream = video_stream + '/img1/%06d.jpg'
+        fps, nb_frames = tra_by_det.tracking_by_detection(video_stream=video_stream, output_file=OUTPUT_DIR + seq_name_list[i]+'.txt', show_image=False, detect_freq=2, down_sample_ratio=1.0, is_probability_driven_detect=True)
+        fps_list.append(fps)
+        nb_frames_list.append(nb_frames)
+
+    print(str(sum([fps * nb_frames for fps, nb_frames in zip(fps_list, nb_frames_list)]) / sum(nb_frames_list)))
