@@ -210,86 +210,75 @@ class MOT_eval(object):
 
 
         # MOTA vs. FPS 
+        #print(self.increment_and_decrement(MOTA_data[keys[KEY_INDEX]]['all'], FPS_data[keys[KEY_INDEX]]['all']))
+
+        TOOLS = 'hover, pan,wheel_zoom,reset,save'
+
+        plot_info = ['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven']
+        color_info = ['red', 'green', 'blue', 'purple']
+
         KEY_INDEX = 0
-        p_yolov3_mota = figure(title = "MOTA and FPS")
-        print(self.increment_and_decrement(MOTA_data[keys[KEY_INDEX]]['all'], FPS_data[keys[KEY_INDEX]]['all']))
-        TOOLS = 'pan,wheel_zoom,reset,save'
+        p_yolov3_mota = figure(title = "YOLOv3 MOTA vs. FPS", tools=[TOOLS])
+        for i, info in enumerate(plot_info):
+            yolov3_mota_source = ColumnDataSource(data=dict(
+                mota=MOTA_data[keys[KEY_INDEX]][info],
+                fps=FPS_data[keys[KEY_INDEX]][info],
+                desc=[info] * len(MOTA_data[keys[KEY_INDEX]][info]),
+                legend=[info] * len(MOTA_data[keys[KEY_INDEX]][info]),
+            ))
 
-        yolov3_mota_source = ColumnDataSource(data=dict(
-            mota=[MOTA_data[keys[KEY_INDEX]]['skip_frame'],MOTA_data[keys[KEY_INDEX]]['downsampling'],MOTA_data[keys[KEY_INDEX]]['prob_driven'],MOTA_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
-            fps=[FPS_data[keys[KEY_INDEX]]['skip_frame'],FPS_data[keys[KEY_INDEX]]['downsampling'],FPS_data[keys[KEY_INDEX]]['prob_driven'],FPS_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
-            desc=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
-            color=['red', 'green', 'blue', 'purple'],
-            legend=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
-        ))
+            p_yolov3_mota.circle('fps', 'mota',source=yolov3_mota_source, legend='legend', fill_color="white", size=4, color=color_info[i])
+            p_yolov3_mota.line('fps', 'mota', source=yolov3_mota_source, legend='legend', line_width=4, line_color=color_info[i], line_alpha=0.6, hover_line_color=color_info[i], hover_line_alpha=0.9) 
 
-        yolov3_mota_hover = HoverTool(tooltips=[
-                            ("index", "$index"),
-                            ("FPS", "$x"),
-                            ("MOTA", "$y"),
-                            ("desc", "@desc"),], 
-                            mode='mouse',
-        )
-
-        p_yolov3_mota = figure(title='YOLOv3 MOTA', tools=[TOOLS, yolov3_mota_hover])
-        p_yolov3_mota.multi_line('fps', 'mota', legend="legend", line_width=4, line_color='color', line_alpha=0.6, hover_line_color='color', hover_line_alpha=1.0, source=yolov3_mota_source)
-        p_yolov3_mota.legend.location = "top_right"
-        p_yolov3_mota.yaxis.axis_label = "MOTA"
-        
+            p_yolov3_mota.legend.location = "top_right"
+            p_yolov3_mota.legend.click_policy="hide"
+            p_yolov3_mota.yaxis.axis_label = "MOTA"
+            p_yolov3_mota.xaxis.axis_label = "FPS"
+        hover = p_yolov3_mota.select(dict(type=HoverTool))
+        hover.tooltips = [("FPS", "@fps"),("MOTA", "@mota")]
+        hover.mode = 'mouse'
 
         KEY_INDEX = 1
-        p_mobilenetssd_mota = figure(title = "MOTA and FPS")
-        print(self.increment_and_decrement(MOTA_data[keys[KEY_INDEX]]['all'], FPS_data[keys[KEY_INDEX]]['all']))
-        TOOLS = 'pan,wheel_zoom,reset,save'
+        p_mobilenetssd_mota = figure(title = "MOBILENET SSD MOTA vs. FPS", tools=[TOOLS])
+        for i, info in enumerate(plot_info):
+            yolov3_mota_source = ColumnDataSource(data=dict(
+                mota=MOTA_data[keys[KEY_INDEX]][info],
+                fps=FPS_data[keys[KEY_INDEX]][info],
+                desc=[info] * len(MOTA_data[keys[KEY_INDEX]][info]),
+                legend=[info] * len(MOTA_data[keys[KEY_INDEX]][info]),
+            ))
 
-        mobilenetssd_mota_source = ColumnDataSource(data=dict(
-            mota=[MOTA_data[keys[KEY_INDEX]]['skip_frame'],MOTA_data[keys[KEY_INDEX]]['downsampling'],MOTA_data[keys[KEY_INDEX]]['prob_driven'],MOTA_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
-            fps=[FPS_data[keys[KEY_INDEX]]['skip_frame'],FPS_data[keys[KEY_INDEX]]['downsampling'],FPS_data[keys[KEY_INDEX]]['prob_driven'],FPS_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
-            desc=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
-            color=['red', 'green', 'blue', 'purple'],
-            legend=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
-        ))
+            p_mobilenetssd_mota.circle('fps', 'mota',source=yolov3_mota_source, legend='legend', fill_color="white", size=4, color=color_info[i])
+            p_mobilenetssd_mota.line('fps', 'mota', source=yolov3_mota_source, legend='legend', line_width=4, line_color=color_info[i], line_alpha=0.6, hover_line_color=color_info[i], hover_line_alpha=0.9) 
 
-        mobilenetssd_mota_hover = HoverTool(tooltips=[
-                                    ("index", "$index"),
-                                    ("FPS", "$x"),
-                                    ("MOTA", "$y"),
-                                    ("desc", "@desc"),], 
-                                    mode='mouse',
-        )
-
-        p_mobilenetssd_mota = figure(title='MOBILENET SSD MOTA', tools=[TOOLS, mobilenetssd_mota_hover])
-        p_mobilenetssd_mota.multi_line('fps', 'mota', legend="legend", line_width=4, line_color='color', line_alpha=0.6, hover_line_color='color', hover_line_alpha=1.0, source=mobilenetssd_mota_source)
-        p_mobilenetssd_mota.legend.location = "top_right"
-        p_mobilenetssd_mota.yaxis.axis_label = "MOTA"
-
+            p_mobilenetssd_mota.legend.location = "top_right"
+            p_mobilenetssd_mota.legend.click_policy="hide"
+            p_mobilenetssd_mota.yaxis.axis_label = "MOTA"
+            p_mobilenetssd_mota.xaxis.axis_label = "FPS"
+        hover = p_mobilenetssd_mota.select(dict(type=HoverTool))
+        hover.tooltips = [("FPS", "@fps"),("MOTA", "@mota")]
+        hover.mode = 'mouse'
         
         KEY_INDEX = 2
-        p_squeezenetv10_mota = figure(title = "MOTA and FPS")
-        print(self.increment_and_decrement(MOTA_data[keys[KEY_INDEX]]['all'], FPS_data[keys[KEY_INDEX]]['all']))
-        TOOLS = 'pan,wheel_zoom,reset,save'
+        p_squeezenetv10_mota = figure(title = "SQUEEZENET V1.0 MOTA vs. FPS", tools=[TOOLS])
+        for i, info in enumerate(plot_info):
+            yolov3_mota_source = ColumnDataSource(data=dict(
+                mota=MOTA_data[keys[KEY_INDEX]][info],
+                fps=FPS_data[keys[KEY_INDEX]][info],
+                desc=[info] * len(MOTA_data[keys[KEY_INDEX]][info]),
+                legend=[info] * len(MOTA_data[keys[KEY_INDEX]][info]),
+            ))
 
-        squeezenetv10_mota_source = ColumnDataSource(data=dict(
-            mota=[MOTA_data[keys[KEY_INDEX]]['skip_frame'],MOTA_data[keys[KEY_INDEX]]['downsampling'],MOTA_data[keys[KEY_INDEX]]['prob_driven'],MOTA_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
-            fps=[FPS_data[keys[KEY_INDEX]]['skip_frame'],FPS_data[keys[KEY_INDEX]]['downsampling'],FPS_data[keys[KEY_INDEX]]['prob_driven'],FPS_data[keys[KEY_INDEX]]['downsampling_with_prob_driven']],
-            desc=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
-            color=['red', 'green', 'blue', 'purple'],
-            legend=['skip_frame', 'downsampling', 'prob_driven', 'downsampling_with_prob_driven'],
-        ))
+            p_squeezenetv10_mota.circle('fps', 'mota',source=yolov3_mota_source, legend='legend', fill_color="white", size=4, color=color_info[i])
+            p_squeezenetv10_mota.line('fps', 'mota', source=yolov3_mota_source, legend='legend', line_width=4, line_color=color_info[i], line_alpha=0.6, hover_line_color=color_info[i], hover_line_alpha=0.9) 
 
-        squeezenetv10_mota_hover = HoverTool(tooltips=[
-                                    ("index", "$index"),
-                                    ("FPS", "$x"),
-                                    ("MOTA", "$y"),
-                                    ("desc", "@desc"),], 
-                                    mode='mouse',
-        )
-
-        p_squeezenetv10_mota = figure(title='SQUEEZENET V10 MOTA', tools=[TOOLS, squeezenetv10_mota_hover])
-        p_squeezenetv10_mota.multi_line('fps', 'mota', legend="legend", line_width=4, line_color='color', line_alpha=0.6, hover_line_color='color', hover_line_alpha=1.0, source=squeezenetv10_mota_source)
-        p_squeezenetv10_mota.legend.location = "top_right"
-        p_squeezenetv10_mota.yaxis.axis_label = "MOTA"
-
+            p_squeezenetv10_mota.legend.location = "top_right"
+            p_squeezenetv10_mota.legend.click_policy="hide"
+            p_squeezenetv10_mota.yaxis.axis_label = "MOTA"
+            p_squeezenetv10_mota.xaxis.axis_label = "FPS"
+        hover = p_mobilenetssd_mota.select(dict(type=HoverTool))
+        hover.tooltips = [("FPS", "@fps"),("MOTA", "@mota")]
+        hover.mode = 'mouse'
 
         show(gridplot([[p_yolov3_mota], [p_mobilenetssd_mota], [p_squeezenetv10_mota]], plot_width=1000, plot_height=600))
 
@@ -432,22 +421,24 @@ if __name__ == '__main__':
     data = {
         'yolov3_tiny': {'vanilla':                  {'MOTA':0.336, 'IDsw':635, 'FPS':10.91483091271569},
                         'vanilla_downsampling':     {'MOTA':0.328, 'IDsw':651, 'FPS':13.502331711038652},
-                        'skip1':                    {'MOTA':0.306, 'IDsw':570, 'FPS':19.37849194020307},
-                        'skip1_downsampling':       {'MOTA':0.299, 'IDsw':577, 'FPS':20.99770992639639},
-                        'skip1_prob':               {'MOTA':0.310, 'IDsw':594, 'FPS':17.687353215558588},
-                        'skip1_downsampling_prob':  {'MOTA':0.304, 'IDsw':601, 'FPS':19.712947568039144},
-                        'skip2':                    {'MOTA':0.262, 'IDsw':581, 'FPS':24.256086156797263},
-                        'skip2_downsampling':       {'MOTA':0.255, 'IDsw':538, 'FPS':26.168741967543177},
-                        'skip2_prob':               {'MOTA':0.281, 'IDsw':581, 'FPS':21.479398919731597},
-                        'skip2_downsampling_prob':  {'MOTA':0.272, 'IDsw':561, 'FPS':23.43272825379938},
-                        'skip3':                    {'MOTA':0.214, 'IDsw':581, 'FPS':27.17888721926881},
-                        'skip3_downsampling':       {'MOTA':0.212, 'IDsw':538, 'FPS':29.893118061828474},
-                        'skip3_prob':               {'MOTA':0.244, 'IDsw':581, 'FPS':24.071292701682104},
-                        'skip3_downsampling_prob':  {'MOTA':0.241, 'IDsw':561, 'FPS':26.58001187446766},
-                        'skip4':                    {'MOTA':0.173, 'IDsw':858, 'FPS':30.7455967240831},
-                        'skip4_downsampling':       {'MOTA':0.172, 'IDsw':826, 'FPS':32.88588810729369},
-                        'skip4_prob':               {'MOTA':0.220, 'IDsw':778, 'FPS':26.199336450564576},
-                        'skip4_downsampling_prob':  {'MOTA':0.217, 'IDsw':721, 'FPS':28.336271278397096},
+                        'skip1':                    {'MOTA':0.306, 'IDsw':570, 'FPS':19.293153879329523},
+                        'skip1_downsampling':       {'MOTA':0.299, 'IDsw':577, 'FPS':21.16659516265331},
+                        'skip1_prob':               {'MOTA':0.322, 'IDsw':594, 'FPS':15.250728432641399},
+                        'skip1_downsampling_prob':  {'MOTA':0.317, 'IDsw':601, 'FPS':17.246271081266418},
+                        'skip2':                    {'MOTA':0.262, 'IDsw':581, 'FPS':24.380912639561338},
+                        'skip2_downsampling':       {'MOTA':0.255, 'IDsw':538, 'FPS':26.39487985590097},
+                        'skip2_prob':               {'MOTA':0.304, 'IDsw':581, 'FPS':17.273034259482532},
+                        'skip2_downsampling_prob':  {'MOTA':0.299, 'IDsw':561, 'FPS':19.306497472601286},
+                        'skip3':                    {'MOTA':0.214, 'IDsw':581, 'FPS':28.105401141453655},
+                        'skip3_downsampling':       {'MOTA':0.212, 'IDsw':538, 'FPS':30.1861545267122},
+                        'skip3_prob':               {'MOTA':0.285, 'IDsw':581, 'FPS':19.220862812101863},
+                        'skip3_downsampling_prob':  {'MOTA':0.282, 'IDsw':561, 'FPS':21.497436502860783},
+                        'skip4':                    {'MOTA':0.173, 'IDsw':858, 'FPS':30.91609208868686},
+                        'skip4_downsampling':       {'MOTA':0.172, 'IDsw':826, 'FPS':32.97000749116024},
+                        'skip4_prob':               {'MOTA':0.269, 'IDsw':778, 'FPS':20.452854541630085},
+                        'skip4_downsampling_prob':  {'MOTA':0.263, 'IDsw':721, 'FPS':23.33499897346363},
+
+
                         'skip4':                    {'MOTA':0.138, 'IDsw':858, 'FPS':33.1634016095078},
                         'skip4_downsampling':       {'MOTA':0.136, 'IDsw':826, 'FPS':35.495408777649196},
                         'skip4_prob':               {'MOTA':0.203, 'IDsw':778, 'FPS':27.908364645956375},
@@ -522,44 +513,45 @@ if __name__ == '__main__':
                             'vanilla_downsampling':     {'MOTA':0.094, 'IDsw':433, 'FPS':21.673303061043992 },
                             'skip1':                    {'MOTA':0.093, 'IDsw':470, 'FPS':34.95316996147481   },
                             'skip1_downsampling':       {'MOTA':0.089, 'IDsw':438, 'FPS':36.08590331121377  },
-                            'skip1_prob':               {'MOTA':0.094, 'IDsw':475, 'FPS':34.4817005552456     },
-                            'skip1_downsampling_prob':  {'MOTA':0.090, 'IDsw':442, 'FPS':35.761214014786916   },
+                            'skip1_prob':               {'MOTA':0.093, 'IDsw':475, 'FPS':32.23478373616411     },
+                            'skip1_downsampling_prob':  {'MOTA':0.090, 'IDsw':442, 'FPS':33.33157598718744   },
                             'skip2':                    {'MOTA':0.084, 'IDsw':408, 'FPS':44.77171969416171  },
                             'skip2_downsampling':       {'MOTA':0.082, 'IDsw':372, 'FPS':46.824602862962315 },
-                            'skip2_prob':               {'MOTA':0.086, 'IDsw':412, 'FPS':43.458595382243914  },
-                            'skip2_downsampling_prob':  {'MOTA':0.083, 'IDsw':368, 'FPS':45.43947471585255  },
+                            'skip2_prob':               {'MOTA':0.088, 'IDsw':412, 'FPS':40.62085401241766  },
+                            'skip2_downsampling_prob':  {'MOTA':0.086, 'IDsw':368, 'FPS':42.75774047975689  },
                             'skip3':                    {'MOTA':0.075, 'IDsw':383, 'FPS':51.622355269656786 },
                             'skip3_downsampling':       {'MOTA':0.073, 'IDsw':338, 'FPS':54.07041484165557  },
-                            'skip3_prob':               {'MOTA':0.079, 'IDsw':396, 'FPS':49.39042651822504   },
-                            'skip3_downsampling_prob':  {'MOTA':0.076, 'IDsw':349, 'FPS':52.12618978706074   },
+                            'skip3_prob':               {'MOTA':0.082, 'IDsw':396, 'FPS':46.27096400687559   },
+                            'skip3_downsampling_prob':  {'MOTA':0.080, 'IDsw':349, 'FPS':48.57501635793877   },
                             'skip4':                    {'MOTA':0.068, 'IDsw':328, 'FPS':56.87061749886791   },
                             'skip4_downsampling':       {'MOTA':0.065, 'IDsw':301, 'FPS':60.00883585017237   },
-                            'skip4_prob':               {'MOTA':0.073, 'IDsw':343, 'FPS':55.01059174306023   },
-                            'skip4_downsampling_prob':  {'MOTA':0.069, 'IDsw':312, 'FPS':58.1498195028054    },
+                            'skip4_prob':               {'MOTA':0.078, 'IDsw':343, 'FPS':51.3094441332378   },
+                            'skip4_downsampling_prob':  {'MOTA':0.073, 'IDsw':312, 'FPS':54.63552272367222    },
                             'skip5':                    {'MOTA':0.059, 'IDsw':298, 'FPS':61.06823719084773  },
                             'skip5_downsampling':       {'MOTA':0.061, 'IDsw':294, 'FPS':64.56221875850596  },
-                            'skip5_prob':               {'MOTA':0.068, 'IDsw':310, 'FPS':58.43487971342008   },
-                            'skip5_downsampling_prob':  {'MOTA':0.065, 'IDsw':301, 'FPS':62.216509837555506 },
+                            'skip5_prob':               {'MOTA':0.070, 'IDsw':310, 'FPS':54.28577355918863   },
+                            'skip5_downsampling_prob':  {'MOTA':0.070, 'IDsw':301, 'FPS':58.4456130845711    },
                             'skip6':                    {'MOTA':0.056, 'IDsw':301, 'FPS':64.21573734646725  },
                             'skip6_downsampling':       {'MOTA':0.054, 'IDsw':284, 'FPS':68.07149014549003  },
-                            'skip6_prob':               {'MOTA':0.061, 'IDsw':313, 'FPS':62.483132411322366 },
-                            'skip6_downsampling_prob':  {'MOTA':0.060, 'IDsw':297, 'FPS':65.81801238599576   },
+                            'skip6_prob':               {'MOTA':0.064, 'IDsw':313, 'FPS':57.72134336646225   },
+                            'skip6_downsampling_prob':  {'MOTA':0.060, 'IDsw':297, 'FPS':61.39160527850794    },
+
                             'skip7':                    {'MOTA':0.044, 'IDsw':281, 'FPS':66.78610024826153  },
                             'skip7_downsampling':       {'MOTA':0.044, 'IDsw':275, 'FPS':70.8977870230824     },
-                            'skip7_prob':               {'MOTA':0.049, 'IDsw':313, 'FPS':64.7894798995347    },
-                            'skip7_downsampling_prob':  {'MOTA':0.050, 'IDsw':275, 'FPS':69.22877880309186   },
+                            'skip7_prob':               {'MOTA':0.059, 'IDsw':313, 'FPS':60.94890175971762   },
+                            'skip7_downsampling_prob':  {'MOTA':0.056, 'IDsw':275, 'FPS':64.50761957946298   },
                             'skip8':                    {'MOTA':0.041, 'IDsw':258, 'FPS':70.83954394395735  },
                             'skip8_downsampling':       {'MOTA':0.042, 'IDsw':266, 'FPS':74.81412007335364  },
-                            'skip8_prob':               {'MOTA':0.048, 'IDsw':281, 'FPS':68.89956792262453   },
-                            'skip8_downsampling_prob':  {'MOTA':0.048, 'IDsw':283, 'FPS':72.8589426992236    },
+                            'skip8_prob':               {'MOTA':0.056, 'IDsw':281, 'FPS':64.66455658532034   },
+                            'skip8_downsampling_prob':  {'MOTA':0.055, 'IDsw':283, 'FPS':68.37078004680247    },
                             'skip9':                    {'MOTA':0.038, 'IDsw':278, 'FPS':73.28210769652618  },
                             'skip9_downsampling':       {'MOTA':0.038, 'IDsw':268, 'FPS':76.56258851656787  },
-                            'skip9_prob':               {'MOTA':0.043, 'IDsw':285, 'FPS':72.09432757117155   },
-                            'skip9_downsampling_prob':  {'MOTA':0.043, 'IDsw':277, 'FPS':74.65828044339783   },
+                            'skip9_prob':               {'MOTA':0.055, 'IDsw':285, 'FPS':66.95744212183034   },
+                            'skip9_downsampling_prob':  {'MOTA':0.050, 'IDsw':277, 'FPS':71.51873091330889   },
                             'skip10':                   {'MOTA':0.035, 'IDsw':236, 'FPS':78.29819637519171  },
                             'skip10_downsampling':      {'MOTA':0.031, 'IDsw':232, 'FPS':79.04940471707698  },
-                            'skip10_prob':              {'MOTA':0.040, 'IDsw':246, 'FPS':72.6521545119922    },
-                            'skip10_downsampling_prob': {'MOTA':0.038, 'IDsw':230, 'FPS':77.15925109834762   },
+                            'skip10_prob':              {'MOTA':0.051, 'IDsw':246, 'FPS':71.26371855405316    },
+                            'skip10_downsampling_prob': {'MOTA':0.048, 'IDsw':230, 'FPS':74.54617349779674   },
         },
     }
 

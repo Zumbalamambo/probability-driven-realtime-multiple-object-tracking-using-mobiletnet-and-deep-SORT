@@ -70,20 +70,33 @@ if __name__ == '__main__':
     fmt = 'mot15-2D'
 
     groundtruths = 'D:/_videos/2DMOT2015/train/'
-    tests_list = ['./MOT15_Train/yolov3_tiny/', './MOT15_Train/squeeze_v1_0/', './MOT15_Train/mobilenetssd/',]
+    #tests_list = ['./MOT15_Train/yolov3_tiny/', './MOT15_Train/squeeze_v1_0/', './MOT15_Train/mobilenetssd/',]
+    tests_list = ['./2018-08-05-chi2inv30/MOT15_Train/yolov3_tiny/']
+    
     #'./MOT15_Test/yolov3_tiny/', './MOT15_Test/mobilenetssd/', './MOT15_Test/mobilenetv2_ssdlite/', './MOT15_Test/squeeze_v1_0/']
-    case_list = ['vanilla', 'vanilla_down_sample',
-    'skip1', 'skip1_down_sample', 'skip1_with_prob', 'skip1_with_prob_down_sample',
-    'skip2', 'skip2_down_sample', 'skip2_with_prob', 'skip2_with_prob_down_sample',
-    'skip3', 'skip3_down_sample', 'skip3_with_prob', 'skip3_with_prob_down_sample',
-    'skip4', 'skip4_down_sample', 'skip4_with_prob', 'skip4_with_prob_down_sample',
-    'skip5', 'skip5_down_sample', 'skip5_with_prob', 'skip5_with_prob_down_sample',
-    'skip6', 'skip6_down_sample', 'skip6_with_prob', 'skip6_with_prob_down_sample',
-    'skip7', 'skip7_down_sample', 'skip7_with_prob', 'skip7_with_prob_down_sample',
-    'skip8', 'skip8_down_sample', 'skip8_with_prob', 'skip8_with_prob_down_sample',
-    'skip9', 'skip9_down_sample', 'skip9_with_prob', 'skip9_with_prob_down_sample',
-    'skip10', 'skip10_down_sample', 'skip10_with_prob', 'skip10_with_prob_down_sample']
-
+    #case_list = ['vanilla', 'vanilla_down_sample',
+    #'skip1', 'skip1_down_sample', 'skip1_with_prob', 'skip1_with_prob_down_sample',
+    #'skip2', 'skip2_down_sample', 'skip2_with_prob', 'skip2_with_prob_down_sample',
+    #'skip3', 'skip3_down_sample', 'skip3_with_prob', 'skip3_with_prob_down_sample',
+    #'skip4', 'skip4_down_sample', 'skip4_with_prob', 'skip4_with_prob_down_sample',
+    #'skip5', 'skip5_down_sample', 'skip5_with_prob', 'skip5_with_prob_down_sample',
+    #'skip6', 'skip6_down_sample', 'skip6_with_prob', 'skip6_with_prob_down_sample',
+    #'skip7', 'skip7_down_sample', 'skip7_with_prob', 'skip7_with_prob_down_sample',
+    #'skip8', 'skip8_down_sample', 'skip8_with_prob', 'skip8_with_prob_down_sample',
+    #'skip9', 'skip9_down_sample', 'skip9_with_prob', 'skip9_with_prob_down_sample',
+    #'skip10', 'skip10_down_sample', 'skip10_with_prob', 'skip10_with_prob_down_sample']
+    case_list = [
+    #'skip1_with_prob', 'skip1_with_prob_down_sample',
+    #'skip2_with_prob', 'skip2_with_prob_down_sample',
+    #'skip3_with_prob', 'skip3_with_prob_down_sample',
+    #'skip4_with_prob', 'skip4_with_prob_down_sample',
+    'skip5_with_prob', 'skip5_with_prob_down_sample',
+    'skip6_with_prob', 'skip6_with_prob_down_sample',
+    'skip7_with_prob', 'skip7_with_prob_down_sample',
+    'skip8_with_prob', 'skip8_with_prob_down_sample',
+    'skip9_with_prob', 'skip9_with_prob_down_sample',
+    'skip10_with_prob', 'skip10_with_prob_down_sample']
+    
     combine_list = []
     for test in tests_list:
         for case in case_list:

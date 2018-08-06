@@ -279,6 +279,9 @@ if __name__ == '__main__':
         for info, info_dict in task_info['info'].items():
             print(info, info_dict)
             print('info', info)
+            if(info.find('prob') == -1):
+                continue
+                
             fps_list = []
             nb_frames_list = []
             for i, video_stream in enumerate(video_stream_list):
